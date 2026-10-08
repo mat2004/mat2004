@@ -1,0 +1,904 @@
+<title>Glow-Up OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one phone-first column like a tailor's ticket; sticky header with level, bottom tab bar on phones, top tabs on wide screens. */
+:root{
+  --bg:#ECEEE9; --surface:#F9FAF7; --sunk:#E2E5DE; --ink:#18202C; --muted:#586270; --line:#CDD2C8;
+  --accent:#8F5F16; --accent-strong:#B57A22; --accent-soft:#F0E1C2; --on-accent:#FFFFFF;
+  --good:#356247; --good-soft:#D7E7DB; --warn:#9A5A12; --warn-soft:#F5E1C6; --bad:#A23A2C; --bad-soft:#F3D8D2;
+  --c-sleep:#97A3B3; --c-work:#34496A; --c-uni:#76659C; --c-commute:#B49C70; --c-ess:#9FB096; --c-free:#C88D2C;
+  --f-display:"Archivo", "Arial Narrow", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11141A; --surface:#191E26; --sunk:#0D1015; --ink:#E6E3DB; --muted:#9AA3AE; --line:#2C333E;
+  --accent:#DDA94F; --accent-strong:#E8B862; --accent-soft:#3A2E19; --on-accent:#16130C;
+  --good:#7FBF96; --good-soft:#1F3328; --warn:#E3A25A; --warn-soft:#3A2A16; --bad:#E58A7C; --bad-soft:#3B1F1B;
+  --c-sleep:#5D6878; --c-work:#6D89B8; --c-uni:#9C8AC6; --c-commute:#B9A27A; --c-ess:#7E9476; --c-free:#DDA94F;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11141A; --surface:#191E26; --sunk:#0D1015; --ink:#E6E3DB; --muted:#9AA3AE; --line:#2C333E;
+  --accent:#DDA94F; --accent-strong:#E8B862; --accent-soft:#3A2E19; --on-accent:#16130C;
+  --good:#7FBF96; --good-soft:#1F3328; --warn:#E3A25A; --warn-soft:#3A2A16; --bad:#E58A7C; --bad-soft:#3B1F1B;
+  --c-sleep:#5D6878; --c-work:#6D89B8; --c-uni:#9C8AC6; --c-commute:#B9A27A; --c-ess:#7E9476; --c-free:#DDA94F;
+  color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+table{font:inherit;color:inherit}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent-strong);outline-offset:2px}
+.wrap{max-width:780px;margin:0 auto;padding-inline:16px;padding-block:0 110px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.top-in{max-width:780px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--f-display);font-stretch:125%;font-weight:850;font-size:19px;letter-spacing:.02em;text-transform:uppercase;line-height:1}
+.brand small{display:block;font-family:var(--f-mono);font-stretch:100%;font-weight:400;font-size:10.5px;letter-spacing:.08em;color:var(--muted);margin-top:4px}
+.lvl{margin-left:auto;display:flex;align-items:center;gap:10px;font-family:var(--f-mono);font-size:12px}
+.lvl .bar{width:90px;height:6px;background:var(--sunk);border-radius:3px;overflow:hidden}
+.lvl .bar i{display:block;height:100%;background:var(--accent-strong)}
+.lvl b{font-weight:600}
+.iconbtn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px}
+nav.tabs{display:flex;gap:4px;max-width:780px;margin:0 auto;padding:0 12px 8px;overflow-x:auto}
+nav.tabs button{border:0;background:none;padding:7px 12px;border-radius:999px;cursor:pointer;font-family:var(--f-display);font-stretch:110%;font-weight:650;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+nav.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+@media (max-width:640px){
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));justify-content:space-between;max-width:none;gap:0}
+  nav.tabs button{flex:1;padding:9px 2px;font-size:11px;border-radius:8px;letter-spacing:.02em}
+}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
+h1{font-stretch:118%;font-weight:800;font-size:26px;line-height:1.1;letter-spacing:-.005em}
+h2{font-stretch:112%;font-weight:750;font-size:17px;letter-spacing:.01em}
+h3{font-stretch:100%;font-weight:700;font-size:15px}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spread{display:flex;gap:10px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+section.view{display:flex;flex-direction:column;gap:22px;padding-top:20px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.hero{display:flex;flex-direction:column;gap:6px}
+.ticket{background:var(--ink);color:var(--bg);border-radius:var(--r);padding:16px 18px;display:flex;flex-direction:column;gap:10px;position:relative}
+.ticket .eyebrow{color:color-mix(in srgb,var(--bg) 70%,transparent)}
+.ticket h2{font-size:19px}
+.ticket .actions{display:flex;gap:8px;flex-wrap:wrap}
+.ticket .btn.ghost{color:var(--bg);border-color:color-mix(in srgb,var(--bg) 40%,transparent)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:700;font-size:13.5px;text-decoration:none;display:inline-flex;align-items:center;gap:6px;line-height:1.2}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent-strong);border-color:var(--accent-strong);color:var(--on-accent)}
+.btn.ghost{background:transparent}
+.btn.tiny{padding:4px 8px;font-size:12px;font-weight:700}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn[disabled]{opacity:.5;cursor:default}
+input[type=text],input[type=number],input[type=date],select,textarea{background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 9px;min-width:0}
+textarea{width:100%;min-height:90px;font-family:var(--f-mono);font-size:12px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);min-width:0}
+label.f > input,label.f > select{color:var(--ink);font-size:14px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.progress{height:8px;background:var(--sunk);border-radius:4px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent-strong);transition:width .3s}
+@media (prefers-reduced-motion:reduce){.progress i{transition:none}}
+ul.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+ul.list > li{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+ul.list > li:first-child{border-top:0}
+.check{appearance:none;flex:none;width:22px;height:22px;border:2px solid var(--muted);border-radius:6px;margin:1px 0 0;cursor:pointer;display:grid;place-items:center;background:var(--surface)}
+.check:checked{background:var(--good);border-color:var(--good)}
+.check:checked::after{content:"";width:6px;height:11px;border:solid var(--surface);border-width:0 2.5px 2.5px 0;transform:translateY(-1px) rotate(45deg)}
+.grow{flex:1;min-width:0}
+.title-done{text-decoration:line-through;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--f-mono);font-size:11px;padding:2px 7px;border-radius:999px;background:var(--sunk);color:var(--muted);white-space:nowrap}
+.chip.good{background:var(--good-soft);color:var(--good)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip.bad{background:var(--bad-soft);color:var(--bad)}
+.chip.acc{background:var(--accent-soft);color:var(--accent)}
+.meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.answer{background:var(--bg);border:1px dashed var(--line);border-radius:8px;padding:10px 12px;font-size:14px;overflow-wrap:anywhere}
+.answer p{margin:0 0 6px}
+.answer ul{margin:0 0 6px;padding-left:20px}
+.answer h4{margin:8px 0 4px;font-family:var(--f-display);font-size:14px}
+.ticket .answer{background:color-mix(in srgb,var(--bg) 8%,transparent);border-color:color-mix(in srgb,var(--bg) 30%,transparent);color:var(--bg)}
+.claudebar{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.daybars{display:flex;flex-direction:column;gap:7px}
+.daybar{display:grid;grid-template-columns:38px 1fr 52px;gap:8px;align-items:center;font-size:12px}
+.daybar .track{display:flex;height:18px;border-radius:4px;overflow:hidden;background:var(--sunk)}
+.daybar .track span{display:block;height:100%}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.tablewrap{overflow-x:auto}
+table.week{border-collapse:collapse;width:100%;min-width:520px;font-size:13px}
+table.week th,table.week td{padding:5px 4px;text-align:center;border-bottom:1px solid var(--line)}
+table.week th{font-family:var(--f-mono);font-weight:600;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+table.week td:first-child,table.week th:first-child{text-align:left}
+table.week input{width:56px;text-align:center;padding:5px 4px}
+.big{font-family:var(--f-display);font-stretch:120%;font-weight:850;font-size:34px;line-height:1}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.stat .v{font-family:var(--f-mono);font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.level-rail{display:flex;flex-direction:column;gap:14px}
+.level{border-left:3px solid var(--line);padding-left:12px;display:flex;flex-direction:column;gap:6px}
+.level.current{border-left-color:var(--accent-strong)}
+.level.cleared{border-left-color:var(--good)}
+.note{background:var(--accent-soft);color:var(--ink);border-radius:8px;padding:10px 12px;font-size:13.5px}
+.empty{border:1px dashed var(--line);border-radius:var(--r);padding:16px;color:var(--muted);font-size:14px}
+details > summary{cursor:pointer;font-weight:700}
+.sync{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;z-index:20}
+@media (max-width:480px){.lvl .muted{display:none}.lvl .bar{width:56px}}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px;margin-top:16px}
+</style>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">Glow-Up OS<small id="today-label"></small></div>
+    <div class="lvl" id="lvl"></div>
+    <button class="iconbtn" id="gear" aria-expanded="false" aria-controls="settings">Settings</button>
+  </div>
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+</header>
+<main class="wrap">
+  <div id="settings" hidden></div>
+  <div id="view"></div>
+</main>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- helpers ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Math.random().toString(36).slice(2, 9);
+const pad = n => String(n).padStart(2, "0");
+const keyOf = d => d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate());
+const todayKey = () => keyOf(new Date());
+const parseKey = k => { const [y,m,d] = k.split("-").map(Number); return new Date(y, m-1, d); };
+const daysBetween = (a, b) => Math.round((parseKey(b) - parseKey(a)) / 86400000);
+const addDays = (k, n) => { const d = parseKey(k); d.setDate(d.getDate()+n); return keyOf(d); };
+const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const weekdayIdx = () => (new Date().getDay() + 6) % 7;
+const num = v => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
+const fmtH = h => (Math.round(h*10)/10).toString().replace(/\.0$/, "") + "h";
+
+/* ---------- default content ---------- */
+const DEFAULT_HABITS = [
+  {id:"h-shower", name:"Shower + deodorant", cat:"Grooming"},
+  {id:"h-skin", name:"Face wash + moisturizer (SPF in the morning)", cat:"Grooming"},
+  {id:"h-shave", name:"Shave or line up the beard", cat:"Grooming"},
+  {id:"h-teeth", name:"Brush twice + floss", cat:"Health"},
+  {id:"h-outfit", name:"Lay out tomorrow's outfit tonight", cat:"Style"},
+  {id:"h-walk", name:"20 min outside / daylight walk", cat:"Health"},
+  {id:"h-social", name:"One real conversation (not just texting)", cat:"Social"},
+  {id:"h-tidy", name:"10-minute tidy of room", cat:"Order"},
+  {id:"h-plan", name:"2-minute plan for tomorrow", cat:"Order"}
+];
+const DEFAULT_UPKEEP = [
+  {id:"u-hair", name:"Haircut", every:28, last:null, tip:"Book the next one while you're still in the chair."},
+  {id:"u-beard", name:"Beard / neckline trim", every:7, last:null, tip:"Neckline sits about two fingers above the Adam's apple."},
+  {id:"u-nails", name:"Trim nails", every:10, last:null, tip:"After a shower, when they're soft."},
+  {id:"u-brows", name:"Brows, nose + ear hair tidy", every:21, last:null, tip:"Small scissors or a detail trimmer, never pluck the whole brow."},
+  {id:"u-sheets", name:"Change bedsheets", every:14, last:null, tip:""},
+  {id:"u-laundry", name:"Laundry + put it away", every:7, last:null, tip:"Folded clothes look better on you than chair-pile clothes."},
+  {id:"u-shoes", name:"Clean shoes", every:21, last:null, tip:"White sneakers: magic eraser on the soles."},
+  {id:"u-closet", name:"Declutter one closet section", every:30, last:null, tip:"Anything that doesn't fit or you haven't worn in a year goes."},
+  {id:"u-dentist", name:"Dentist check-up", every:180, last:null, tip:""}
+];
+const LADDER = [
+  {lvl:1, name:"Warm-up", items:[
+    {id:"s1a", t:"Make eye contact and smile at 3 strangers today"},
+    {id:"s1b", t:"Say something beyond 'thanks' to a cashier or barista"},
+    {id:"s1c", t:"Reply properly to a group chat you've been ignoring"}]},
+  {lvl:2, name:"Small talk", items:[
+    {id:"s2a", t:"Ask a classmate a question about the lecture or assignment"},
+    {id:"s2b", t:"Give someone a genuine, specific compliment"},
+    {id:"s2c", t:"Ask a coworker about their weekend and ask one follow-up question"}]},
+  {lvl:3, name:"Initiate", items:[
+    {id:"s3a", t:"Suggest coffee or lunch after class to a classmate"},
+    {id:"s3b", t:"Message an old friend you lost touch with and suggest meeting"},
+    {id:"s3c", t:"Go to one uni event, club meeting or student society night"}]},
+  {lvl:4, name:"Show up", items:[
+    {id:"s4a", t:"Join something that repeats weekly (sport, gym class, club, volunteering)"},
+    {id:"s4b", t:"Go to a social event and stay at least 45 minutes"},
+    {id:"s4c", t:"Organise something small: study group, game night, a walk"}]},
+  {lvl:5, name:"Build", items:[
+    {id:"s5a", t:"Make plans with the same person a second time"},
+    {id:"s5b", t:"Introduce yourself to someone new at an event"},
+    {id:"s5c", t:"Do a solo outing: café, museum, concert, cinema"}]}
+];
+const CAPSULE = [
+  {id:"w-wtee", name:"White T-shirts (x3), good fit", est:45, cat:"Clothes"},
+  {id:"w-btee", name:"Black or navy T-shirts (x2)", est:30, cat:"Clothes"},
+  {id:"w-oxford", name:"Oxford shirt, white or light blue", est:40, cat:"Clothes"},
+  {id:"w-knit", name:"Crewneck sweater, navy or grey", est:45, cat:"Clothes"},
+  {id:"w-jeans", name:"Dark jeans, slim or straight", est:60, cat:"Clothes"},
+  {id:"w-chinos", name:"Chinos, beige or navy", est:45, cat:"Clothes"},
+  {id:"w-sneak", name:"White leather sneakers", est:90, cat:"Clothes"},
+  {id:"w-boots", name:"Chelsea or desert boots", est:110, cat:"Clothes"},
+  {id:"w-jacket", name:"Overshirt or bomber jacket", est:70, cat:"Clothes"},
+  {id:"w-coat", name:"Wool coat for winter", est:150, cat:"Clothes"},
+  {id:"w-belt", name:"Leather belt matching your shoes", est:30, cat:"Clothes"},
+  {id:"w-watch", name:"Simple watch", est:60, cat:"Clothes"}
+];
+const KIT = [
+  {id:"k-wash", name:"Gentle face wash", est:10},
+  {id:"k-moist", name:"Moisturizer with SPF 30+", est:15},
+  {id:"k-trim", name:"Beard trimmer with guards", est:45},
+  {id:"k-razor", name:"Razor + shaving gel", est:15},
+  {id:"k-deo", name:"Deodorant / antiperspirant", est:6},
+  {id:"k-lip", name:"Lip balm", est:4},
+  {id:"k-nail", name:"Nail clipper + file", est:8},
+  {id:"k-hair", name:"Matte hair clay or paste", est:15},
+  {id:"k-scent", name:"Fragrance samples / decants (try before buying)", est:20, cat:"Perfume"}
+];
+const QUICK_PROMPTS = [
+  {t:"Plan my week", p:"Help me plan my week. I work and go to uni, and I'm lazy and disorganised. Ask me for my fixed hours (work, classes, commute) one question at a time, then build a realistic weekly schedule that includes grooming, exercise, social time and rest. Keep blocks short and realistic."},
+  {t:"Outfits from what I own", p:"I want to dress better. I'll list the clothes I own. Build me 7 outfits from them for uni, work and going out, tell me which 3 items I should buy next to get the most new outfits, and explain basic fit rules for men."},
+  {t:"Grooming routine", p:"Build me a simple men's grooming routine (morning + evening, under 10 minutes total). Ask me about my skin type, beard, and hair first, then give product types (not brands unless I ask), order of steps, and a weekly/monthly schedule (haircut, trims, nails)."},
+  {t:"Haircut to ask for", p:"Help me pick a haircut. Ask me about my face shape, hair type and how much time I want to spend styling. Then tell me exactly what to say to the barber (lengths, guard numbers, fade or taper) and how to style it in 2 minutes."},
+  {t:"First perfume", p:"Help me choose my first two fragrances (one daily/fresh, one for evenings) on a student budget. Ask what I like, then suggest options at different price points, explain how to test them, where to buy decants, and how many sprays and where."},
+  {t:"Invite someone out", p:"Write me 3 short, natural messages to invite a classmate I don't know well for coffee or lunch after class. Casual, not weird, easy to say no to."},
+  {t:"Study plan for an exam", p:"Make me a study plan for an upcoming exam. Ask me the subject, the date, the topics and how many hours I really have per day. Use short sessions and spaced repetition, and include rest."},
+  {t:"Monthly budget review", p:"Review my monthly budget with me. I'll give you income and fixed costs. Help me set an emergency fund, a monthly 'upgrade fund' for clothes, grooming and perfume, and tell me what order to buy things in."}
+];
+
+function freshState(){
+  return {
+    v:1,
+    settings:{name:"", currency:"€"},
+    xp:0,
+    habits: DEFAULT_HABITS.map(h => ({...h})),
+    log:{},
+    tasks:[
+      {id:uid(), title:"Book a haircut", cat:"Style", due:todayKey(), pri:1, done:false, steps:"", example:true},
+      {id:uid(), title:"Sort out the clothes I don't wear", cat:"Style", due:addDays(todayKey(),3), pri:2, done:false, steps:"", example:true},
+      {id:uid(), title:"Write down my class + work schedule in the Week tab", cat:"Life admin", due:todayKey(), pri:1, done:false, steps:"", example:true}
+    ],
+    upkeep: DEFAULT_UPKEEP.map(u => ({...u})),
+    social:{done:{}},
+    owned:{},
+    week:{example:true, days:[
+      {sleep:8, work:0, uni:6, commute:1, ess:2.5},
+      {sleep:8, work:5, uni:2, commute:1, ess:2.5},
+      {sleep:8, work:0, uni:6, commute:1, ess:2.5},
+      {sleep:8, work:5, uni:2, commute:1, ess:2.5},
+      {sleep:8, work:0, uni:4, commute:1, ess:2.5},
+      {sleep:8.5, work:6, uni:0, commute:0.5, ess:2.5},
+      {sleep:9, work:0, uni:2, commute:0, ess:3}
+    ]},
+    budget:{income:0, fixed:[
+      {id:uid(), name:"Rent / board", amt:0},
+      {id:uid(), name:"Food", amt:0},
+      {id:uid(), name:"Transport", amt:0},
+      {id:uid(), name:"Phone + subscriptions", amt:0}
+    ], save:0, upgrade:0, lastPayday:null, wish:[], bought:[]}
+  };
+}
+
+/* ---------- state + storage ---------- */
+const LS_KEY = "glowup-os-v1";
+let state = freshState();
+let syncMode = "device";      // "device" | "account"
+let cloudRef = null;
+let saveTimer = null, saving = Promise.resolve();
+
+function mergeState(s){
+  const base = freshState();
+  const out = Object.assign(base, s || {});
+  out.settings = Object.assign(freshState().settings, (s||{}).settings);
+  out.budget = Object.assign(freshState().budget, (s||{}).budget);
+  out.social = Object.assign({done:{}}, (s||{}).social);
+  out.week = (s && s.week && Array.isArray(s.week.days) && s.week.days.length === 7) ? s.week : base.week;
+  return out;
+}
+function loadLocal(){
+  try { const raw = localStorage.getItem(LS_KEY); if (raw) state = mergeState(JSON.parse(raw)); } catch(e) {}
+}
+function save(){
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e) {}
+  if (!cloudRef) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const body = {s: JSON.parse(JSON.stringify(state)), at: new Date().toISOString()};
+    saving = saving.then(() => cloudRef.set(body)).catch(e => {
+      if (e && (e.code === "invalid_argument" || e.code === "revoked" || e.code === "not_granted")) { cloudRef = null; syncMode = "device"; renderHeader(); }
+      if (e && e.code === "quota_exceeded") toast("Your account storage is full. Export a backup in Settings.");
+    });
+  }, 700);
+}
+async function initCloud(){
+  if (!window.claude || typeof window.claude.use !== "function") return;
+  try {
+    const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+    if (!db || !user) return;
+    const id = await user.id();
+    if (!id) return;
+    const ref = db.doc("data/users/" + id + "/state");
+    const snap = await ref.get();
+    cloudRef = ref; syncMode = "account";
+    if (snap.exists && snap.data() && snap.data().s) {
+      state = mergeState(snap.data().s);
+      try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e) {}
+    } else {
+      let hasLocal = false;
+      try { hasLocal = !!localStorage.getItem(LS_KEY); } catch(e) {}
+      if (hasLocal) save();
+    }
+    render();
+  } catch(e) { /* stay on device storage */ }
+}
+
+/* ---------- Claude ---------- */
+let sampler = null, sampleOK = false;
+const answers = {};   // key -> {text, busy}
+async function initSample(){
+  if (!window.claude || typeof window.claude.use !== "function") return;
+  try { sampler = await window.claude.use("sample"); sampleOK = !!sampler; if (sampleOK) render(); } catch(e) {}
+}
+const claudeUrl = p => "https://claude.ai/new?q=" + encodeURIComponent(p);
+function md(text){
+  const lines = esc(text).split("\n"); let html = "", inList = false;
+  const inline = s => s.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/`([^`]+)`/g, "<code>$1</code>");
+  for (const raw of lines){
+    const l = raw.trimEnd();
+    const li = l.match(/^\s*(?:[-*•]|\d+[.)])\s+(.*)$/);
+    if (li){ if(!inList){html += "<ul>"; inList = true;} html += "<li>" + inline(li[1]) + "</li>"; continue; }
+    if (inList){ html += "</ul>"; inList = false; }
+    const h = l.match(/^#{1,4}\s+(.*)$/);
+    if (h) html += "<h4>" + inline(h[1]) + "</h4>";
+    else if (l.trim()) html += "<p>" + inline(l) + "</p>";
+  }
+  if (inList) html += "</ul>";
+  return html;
+}
+function answerBox(key){
+  const a = answers[key];
+  if (!a) return "";
+  return `<div class="answer" data-answer="${esc(key)}">${a.text ? md(a.text) : "Thinking…"}</div>`;
+}
+function paintAnswer(key){
+  const el = document.querySelector(`[data-answer="${CSS.escape(key)}"]`);
+  if (el) el.innerHTML = answers[key].text ? md(answers[key].text) : "Thinking…";
+}
+async function ask(key, prompt, onDone){
+  if (!sampler) return;
+  if (answers[key] && answers[key].busy) return;
+  answers[key] = {text:"", busy:true}; render();
+  try {
+    const r = await sampler(prompt, {onText: ({text}) => { answers[key].text = text; paintAnswer(key); }});
+    answers[key] = {text:r.text, busy:false};
+    if (onDone) onDone(r.text);
+  } catch(e) {
+    const code = e && e.code;
+    let msg = "Claude couldn't answer here. Use \"Open in Claude\" instead.";
+    if (code === "not_granted" || code === "sampling_disabled" || code === "not_declared") { sampleOK = false; msg = "Claude access is off for this page. Use \"Open in Claude\" instead."; }
+    else if (code === "rate_limited") msg = "Too many requests at once. Wait a minute and try again.";
+    else if (code === "cancelled") msg = "Stopped.";
+    answers[key] = {text:((e && e.text) ? e.text + "\n\n" : "") + msg, busy:false};
+  }
+  render();
+}
+function claudeBar(key, prompt, label){
+  const busy = answers[key] && answers[key].busy;
+  return `<div class="claudebar">
+    ${sampleOK ? `<button class="btn tiny primary" data-act="ask" data-key="${esc(key)}" ${busy?"disabled":""}>${busy ? "Claude is thinking…" : esc(label || "Ask Claude here")}</button>` : ""}
+    <a class="btn tiny" href="${claudeUrl(prompt)}" target="_blank" rel="noopener">Open in Claude</a>
+    <button class="btn tiny ghost" data-act="copyprompt" data-key="${esc(key)}">Copy prompt</button>
+  </div>`;
+}
+const prompts = {}; // key -> prompt text, filled during render
+
+/* ---------- derived numbers ---------- */
+const XP_PER_LEVEL = 200;
+function addXP(n){ state.xp = Math.max(0, (state.xp||0) + n); }
+function dayLog(k){ return state.log[k] || (state.log[k] = {h:{}}); }
+function habitsDone(k){ const l = state.log[k]; if (!l) return 0; return state.habits.filter(h => l.h[h.id]).length; }
+function dayCounts(k){ return state.habits.length && habitsDone(k) / state.habits.length >= 0.6; }
+function streak(){
+  let k = todayKey(), n = 0;
+  if (!dayCounts(k)) k = addDays(k, -1);
+  while (dayCounts(k)) { n++; k = addDays(k, -1); if (n > 999) break; }
+  return n;
+}
+function dayFree(d){ return Math.max(0, 24 - num(d.sleep) - num(d.work) - num(d.uni) - num(d.commute) - num(d.ess)); }
+function weekFree(){ return state.week.days.reduce((a, d) => a + dayFree(d), 0); }
+function upkeepStatus(u){
+  if (!u.last) return {cls:"warn", label:"never logged", due:0};
+  const due = daysBetween(todayKey(), addDays(u.last, u.every));
+  if (due < 0) return {cls:"bad", label:`${-due}d overdue`, due};
+  if (due === 0) return {cls:"warn", label:"due today", due};
+  if (due <= 3) return {cls:"warn", label:`due in ${due}d`, due};
+  return {cls:"good", label:`in ${due}d`, due};
+}
+function socialLevel(){
+  for (const L of LADDER) if (L.items.filter(i => state.social.done[i.id]).length < 2) return L;
+  return LADDER[LADDER.length-1];
+}
+function nextChallenge(){ const L = socialLevel(); return L.items.find(i => !state.social.done[i.id]) || L.items[0]; }
+function openTasks(){ return state.tasks.filter(t => !t.done); }
+function money(n){ return state.settings.currency + (Math.round(num(n)*100)/100).toLocaleString(undefined, {maximumFractionDigits:2}); }
+function fixedTotal(){ return state.budget.fixed.reduce((a,f) => a + num(f.amt), 0); }
+function wishSorted(){ return state.budget.wish.slice().sort((a,b) => (a.pri - b.pri) || (a.created||0) - (b.created||0)); }
+function wishEta(){
+  const up = num(state.budget.upgrade); let cum = 0; const out = {};
+  for (const w of wishSorted()){ cum += Math.max(0, num(w.price) - num(w.saved)); out[w.id] = up > 0 ? Math.ceil(cum / up) : null; }
+  return out;
+}
+function monthLabel(offset){ const d = new Date(); d.setMonth(d.getMonth() + offset); return d.toLocaleDateString(undefined, {month:"short", year:"numeric"}); }
+
+/* ---------- coach context ---------- */
+function contextSummary(){
+  const k = todayKey(), l = state.log[k] || {h:{}};
+  const done = state.habits.filter(h => l.h[h.id]).map(h => h.name);
+  const notDone = state.habits.filter(h => !l.h[h.id]).map(h => h.name);
+  const over = state.upkeep.map(u => [u, upkeepStatus(u)]).filter(([,s]) => s.cls !== "good").map(([u,s]) => `${u.name} (${s.label})`);
+  const tasks = openTasks().slice(0, 10).map(t => `${t.title}${t.due ? " [due " + t.due + "]" : ""}`);
+  const next = wishSorted()[0];
+  return `About me: I'm a uni student who also works. I want to get out more, socialise more, dress better, keep up with grooming (shaving, haircuts) and be more organised. I'm honestly lazy and disorganised, so I need small, concrete steps.
+Today is ${new Date().toDateString()}. Free hours today (after sleep, work, uni, commute, essentials): about ${fmtH(dayFree(state.week.days[weekdayIdx()]))}. Free hours this week: about ${fmtH(weekFree())}.
+Daily habits done today: ${done.join("; ") || "none yet"}. Not done yet: ${notDone.join("; ") || "nothing"}. Current streak: ${streak()} days.
+Grooming/upkeep due or overdue: ${over.join("; ") || "nothing"}.
+Open tasks: ${tasks.join("; ") || "none"}.
+Social ladder: level ${socialLevel().lvl} (${socialLevel().name}); next challenge: "${nextChallenge().t}".
+Monthly upgrade fund for clothes/grooming/perfume: ${money(state.budget.upgrade)}${next ? `; next item on my wishlist: ${next.name} (${money(next.price)}, saved ${money(next.saved)})` : ""}.`;
+}
+
+/* ---------- rendering ---------- */
+const TABS = [["today","Today"],["week","Week"],["tasks","Tasks"],["social","Social"],["style","Style"],["budget","Budget"]];
+let tab = "today";
+try { const t = localStorage.getItem("glowup-tab"); if (t && TABS.some(x => x[0] === t)) tab = t; } catch(e) {}
+if (location.hash && TABS.some(x => "#" + x[0] === location.hash)) tab = location.hash.slice(1);
+let showSettings = false, confirmReset = false;
+
+function renderHeader(){
+  const xp = state.xp || 0, lvl = Math.floor(xp / XP_PER_LEVEL) + 1, pct = (xp % XP_PER_LEVEL) / XP_PER_LEVEL * 100;
+  $("#today-label").textContent = new Date().toLocaleDateString(undefined, {weekday:"short", day:"numeric", month:"short"}).toUpperCase() + " · STREAK " + streak() + "D";
+  $("#lvl").innerHTML = `<span>LVL <b>${lvl}</b></span><span class="bar" aria-label="${Math.round(pct)}% to next level"><i style="width:${pct}%"></i></span><span class="muted">${xp % XP_PER_LEVEL}/${XP_PER_LEVEL}</span>`;
+  $("#tabs").innerHTML = TABS.map(([id, name]) => `<button role="tab" aria-selected="${tab===id}" data-tab="${id}">${name}</button>`).join("");
+  $("#gear").setAttribute("aria-expanded", showSettings);
+}
+
+function render(){
+  renderHeader();
+  for (const k in prompts) delete prompts[k];
+  const views = {today:vToday, week:vWeek, tasks:vTasks, social:vSocial, style:vStyle, budget:vBudget};
+  $("#view").innerHTML = `<section class="view">${views[tab]()}</section>`;
+  const s = $("#settings"); s.hidden = !showSettings; if (showSettings) s.innerHTML = vSettings();
+}
+
+function taskItem(t){
+  const key = "task-" + t.id;
+  const prompt = `I need to do this task: "${t.title}" (category: ${t.cat}${t.due ? ", due " + t.due : ""}).
+I'm a uni student who also works, short on time and motivation. Break it into small concrete steps (each 15 minutes or less where possible), tell me the very first 2-minute action to start right now, estimate the total time, and tell me which parts you (Claude) can do for me directly, like drafting messages, researching, comparing options or making a plan. Keep it short.`;
+  prompts[key] = prompt;
+  const overdue = t.due && !t.done && t.due < todayKey();
+  const dueChip = t.due ? `<span class="chip ${overdue ? "bad" : t.due === todayKey() ? "warn" : ""}">${t.due === todayKey() ? "today" : overdue ? "overdue " + t.due.slice(5) : t.due.slice(5)}</span>` : "";
+  const stored = !answers[key] && t.steps ? `<details><summary class="small">Claude's steps</summary><div class="answer">${md(t.steps)}</div></details>` : "";
+  return `<li>
+    <input type="checkbox" class="check" data-act="task-done" data-id="${t.id}" ${t.done?"checked":""} aria-label="Done: ${esc(t.title)}">
+    <div class="grow">
+      <div class="${t.done ? "title-done" : ""}">${esc(t.title)}</div>
+      <div class="meta"><span class="chip">${esc(t.cat)}</span>${dueChip}${t.pri===1?'<span class="chip acc">high</span>':""}${t.example?'<span class="chip">example</span>':""}</div>
+      ${t.done ? "" : claudeBar(key, prompt, "Break into steps")}
+      ${answerBox(key)}${stored}
+    </div>
+    <button class="btn tiny ghost" data-act="task-del" data-id="${t.id}" aria-label="Delete ${esc(t.title)}">✕</button>
+  </li>`;
+}
+
+function vToday(){
+  const k = todayKey(), l = state.log[k] || {h:{}};
+  const n = habitsDone(k), total = state.habits.length;
+  const free = dayFree(state.week.days[weekdayIdx()]);
+  const dueUp = state.upkeep.map(u => [u, upkeepStatus(u)]).filter(([,s]) => s.cls !== "good" && s.label !== "never logged").sort((a,b) => a[1].due - b[1].due);
+  const neverUp = state.upkeep.filter(u => !u.last);
+  const todays = openTasks().filter(t => t.due && t.due <= k).sort((a,b) => a.due.localeCompare(b.due) || a.pri - b.pri);
+  const ch = nextChallenge();
+
+  // the single next step
+  let step;
+  if (dueUp.length && dueUp[0][1].cls === "bad") step = {t:`${dueUp[0][0].name} is ${dueUp[0][1].label}.`, s:"Do it or book it today. Booking counts."};
+  else if (todays.length) step = {t:todays[0].title, s:"Your oldest due task. Do the first 2 minutes, then decide if you keep going."};
+  else if (n < total) step = {t:state.habits.find(h => !l.h[h.id]).name, s:"Next unchecked habit. Small wins first."};
+  else step = {t:ch.t, s:`Social level ${socialLevel().lvl}. Do it once today.`};
+
+  const coachPrompt = `${contextSummary()}
+
+Act as my no-nonsense personal coach. Give me: 1) the single most important thing to do today, 2) a realistic plan for the rest of today in time blocks that fits my free hours, 3) one social micro-challenge, 4) which of my tasks you (Claude) could help me finish faster. Be direct and short.`;
+  prompts["coach"] = coachPrompt;
+
+  return `
+  <div class="hero">
+    <span class="eyebrow">${state.settings.name ? "Hey " + esc(state.settings.name) + " · " : ""}${fmtH(free)} free today · ${fmtH(weekFree())} this week</span>
+    <h1>One small upgrade at a time.</h1>
+  </div>
+
+  <div class="ticket">
+    <span class="eyebrow">Next smallest step</span>
+    <h2>${esc(step.t)}</h2>
+    <div class="small" style="opacity:.8">${esc(step.s)}</div>
+    <div class="claudebar">
+      ${sampleOK ? `<button class="btn tiny primary" data-act="ask" data-key="coach" ${answers.coach && answers.coach.busy ? "disabled" : ""}>${answers.coach && answers.coach.busy ? "Claude is thinking…" : "Plan my day with Claude"}</button>` : ""}
+      <a class="btn tiny ghost" href="${claudeUrl(coachPrompt)}" target="_blank" rel="noopener">Plan my day in Claude</a>
+    </div>
+    ${answerBox("coach")}
+  </div>
+
+  <div class="panel">
+    <div class="spread"><h2>Daily habits</h2><span class="mono small">${n} / ${total}</span></div>
+    <div class="progress"><i style="width:${total ? n/total*100 : 0}%"></i></div>
+    <ul class="list">
+      ${state.habits.map(h => `<li>
+        <input type="checkbox" class="check" id="hb-${h.id}" data-act="habit" data-id="${h.id}" ${l.h[h.id]?"checked":""}>
+        <label class="grow" for="hb-${h.id}"><span class="${l.h[h.id] ? "title-done" : ""}">${esc(h.name)}</span><div class="meta"><span class="chip">${esc(h.cat)}</span></div></label>
+      </li>`).join("")}
+    </ul>
+    <div class="small muted">Hit 60% of your habits to keep the streak alive. Missing one day is fine. Never miss two in a row.</div>
+    <details><summary class="small">Edit habits</summary>
+      <div class="stack" style="margin-top:10px">
+        ${state.habits.map(h => `<div class="row"><input type="text" class="grow" id="hn-${h.id}" data-bind="habit-name" data-id="${h.id}" value="${esc(h.name)}" aria-label="Habit name"><button class="btn tiny danger" data-act="habit-del" data-id="${h.id}">Remove</button></div>`).join("")}
+        <form class="row" data-form="habit-add"><input type="text" class="grow" id="habit-new" name="name" placeholder="New habit, e.g. 15 push-ups" required><button class="btn tiny">Add habit</button></form>
+      </div>
+    </details>
+  </div>
+
+  ${(dueUp.length || neverUp.length) ? `<div class="panel">
+    <h2>Grooming + upkeep due</h2>
+    ${dueUp.length ? `<ul class="list">${dueUp.map(([u,s]) => `<li><div class="grow">${esc(u.name)}<div class="meta"><span class="chip ${s.cls}">${s.label}</span></div></div><button class="btn tiny" data-act="up-done" data-id="${u.id}">Done today</button></li>`).join("")}</ul>` : ""}
+    ${neverUp.length ? `<div class="small muted">${neverUp.length} upkeep items haven't been logged yet. Set the last date in the <a href="#style" data-tab="style">Style tab</a> so reminders work.</div>` : ""}
+  </div>` : ""}
+
+  <div class="panel">
+    <div class="spread"><h2>Due today</h2><a href="#tasks" data-tab="tasks" class="small">All tasks</a></div>
+    ${todays.length ? `<ul class="list">${todays.map(taskItem).join("")}</ul>` : `<div class="empty">Nothing due. Add tasks in the Tasks tab, and give them a date so they show up here.</div>`}
+  </div>
+
+  <div class="panel">
+    <span class="eyebrow">Social challenge · level ${socialLevel().lvl}</span>
+    <h3>${esc(ch.t)}</h3>
+    <div class="row"><button class="btn tiny primary" data-act="soc-done" data-id="${ch.id}">I did it (+${socialLevel().lvl*15} XP)</button><a class="btn tiny" href="#social" data-tab="social">See the ladder</a></div>
+  </div>`;
+}
+
+function vWeek(){
+  const days = state.week.days, wf = weekFree(), ti = weekdayIdx();
+  const cats = [["sleep","Sleep","--c-sleep"],["work","Work","--c-work"],["uni","Uni + study","--c-uni"],["commute","Commute","--c-commute"],["ess","Meals, hygiene, chores","--c-ess"]];
+  const tot = c => days.reduce((a,d) => a + num(d[c]), 0);
+  const social = Math.min(6, Math.max(2, wf * 0.15)), gym = Math.min(5, Math.max(1.5, wf * 0.12)), admin = 1.5;
+  const rest = Math.max(0, wf - social - gym - admin);
+  const p = `Here is my typical week in hours per day (Mon to Sun):
+${days.map((d,i) => `${DAYS[i]}: sleep ${d.sleep}, work ${d.work}, uni/study ${d.uni}, commute ${d.commute}, essentials ${d.ess} → free ${fmtH(dayFree(d))}`).join("\n")}
+Total free time: ${fmtH(wf)} per week.
+I want to get out more, socialise, exercise, keep up with grooming and get organised, but I'm lazy and short on time. Turn this into a concrete weekly schedule: put social time, exercise, a weekly 30-minute grooming/admin block and real rest into specific days and times. Point out where I'm wasting time and protect my sleep. Keep it realistic.`;
+  prompts["week"] = p;
+  return `
+  <div class="hero">
+    <span class="eyebrow">Where your 168 hours go</span>
+    <h1>You have <span class="mono">${fmtH(wf)}</span> free each week.</h1>
+    <div class="muted">That's about ${fmtH(wf/7)} a day after sleep, work, uni, commute and the basics. Enough for a social life if you plan it.</div>
+  </div>
+  ${state.week.example ? `<div class="note">These are example hours. Replace them with your real schedule; the example label goes away after your first edit.</div>` : ""}
+  <div class="panel">
+    <h2>Free time per day</h2>
+    <div class="daybars">
+      ${days.map((d,i) => `<div class="daybar"><span class="mono" style="${i===ti?"font-weight:600;color:var(--accent)":""}">${DAYS[i]}</span>
+        <div class="track">${cats.map(([c,,v]) => `<span style="width:${num(d[c])/24*100}%;background:var(${v})" title="${c} ${d[c]}h"></span>`).join("")}<span style="width:${dayFree(d)/24*100}%;background:var(--c-free)" title="free"></span></div>
+        <span class="mono" style="text-align:right">${fmtH(dayFree(d))}</span></div>`).join("")}
+    </div>
+    <div class="legend">${cats.map(([,n,v]) => `<span><i style="background:var(${v})"></i>${n}</span>`).join("")}<span><i style="background:var(--c-free)"></i>Free</span></div>
+  </div>
+  <div class="panel">
+    <h2>Your hours</h2>
+    <div class="tablewrap"><table class="week">
+      <thead><tr><th>Day</th>${cats.map(([,n]) => `<th>${n.split(",")[0]}</th>`).join("")}<th>Free</th></tr></thead>
+      <tbody>${days.map((d,i) => `<tr><td class="mono">${DAYS[i]}</td>${cats.map(([c]) => `<td><input type="number" min="0" max="24" step="0.5" id="wk-${i}-${c}" data-bind="week" data-day="${i}" data-field="${c}" value="${d[c]}" aria-label="${DAYS[i]} ${c} hours"></td>`).join("")}<td class="mono">${fmtH(dayFree(d))}</td></tr>`).join("")}
+      <tr><td class="mono">Week</td>${cats.map(([c]) => `<td class="mono">${fmtH(tot(c))}</td>`).join("")}<td class="mono"><b>${fmtH(wf)}</b></td></tr></tbody>
+    </table></div>
+    <div class="small muted">"Meals, hygiene, chores" covers eating, showering, getting dressed and cleaning. 2 to 3 hours a day is realistic.</div>
+  </div>
+  <div class="panel">
+    <h2>Suggested split of your free time</h2>
+    <div class="stats">
+      <div class="stat"><span class="eyebrow">Social</span><span class="v">${fmtH(social)}</span><span class="small muted">2 to 3 outings a week</span></div>
+      <div class="stat"><span class="eyebrow">Exercise</span><span class="v">${fmtH(gym)}</span><span class="small muted">3 sessions or daily walks</span></div>
+      <div class="stat"><span class="eyebrow">Admin + style</span><span class="v">${fmtH(admin)}</span><span class="small muted">Sunday reset, shopping, laundry</span></div>
+      <div class="stat"><span class="eyebrow">Yours</span><span class="v">${fmtH(rest)}</span><span class="small muted">Rest, games, hobbies</span></div>
+    </div>
+    <div class="small muted">Put social time in the calendar like a class. If it isn't scheduled, it won't happen.</div>
+    ${claudeBar("week", p, "Build my weekly schedule")}
+    ${answerBox("week")}
+  </div>`;
+}
+
+function vTasks(){
+  const k = todayKey(), open = openTasks();
+  const groups = [
+    ["Overdue", open.filter(t => t.due && t.due < k)],
+    ["Today", open.filter(t => t.due === k)],
+    ["Upcoming", open.filter(t => t.due && t.due > k)],
+    ["Someday", open.filter(t => !t.due)]
+  ].map(([n, arr]) => [n, arr.sort((a,b) => (a.due||"").localeCompare(b.due||"") || a.pri - b.pri)]);
+  const done = state.tasks.filter(t => t.done);
+  QUICK_PROMPTS.forEach((q,i) => prompts["qp-" + i] = q.p);
+  return `
+  <div class="hero"><span class="eyebrow">${open.length} open</span><h1>Get it out of your head.</h1>
+    <div class="muted">Every task gets a "Break into steps" button. Claude splits it into small steps and says which parts it can do for you.</div></div>
+  <form class="panel" data-form="task-add">
+    <h2>Add a task</h2>
+    <label class="f">Task<input type="text" id="task-title" name="title" placeholder="e.g. Buy a new winter jacket" required></label>
+    <div class="grid2">
+      <label class="f">Category<select id="task-cat" name="cat">${["Uni","Work","Life admin","Style","Grooming","Social","Health","Money"].map(c => `<option>${c}</option>`).join("")}</select></label>
+      <label class="f">Due<input type="date" id="task-due" name="due"></label>
+      <label class="f">Priority<select id="task-pri" name="pri"><option value="1">High</option><option value="2" selected>Normal</option><option value="3">Low</option></select></label>
+    </div>
+    <div><button class="btn primary">Add task</button></div>
+  </form>
+  ${open.length ? groups.filter(g => g[1].length).map(([n, arr]) => `<div class="panel"><div class="spread"><h2>${n}</h2><span class="mono small muted">${arr.length}</span></div><ul class="list">${arr.map(taskItem).join("")}</ul></div>`).join("") : `<div class="empty">No open tasks. Add one above.</div>`}
+  ${done.length ? `<details class="panel"><summary>Done (${done.length})</summary><ul class="list">${done.slice(-30).reverse().map(taskItem).join("")}</ul><div><button class="btn tiny ghost" data-act="clear-done">Clear done tasks</button></div></details>` : ""}
+  <div class="panel">
+    <h2>Ask Claude to help with…</h2>
+    <div class="small muted">Ready-made requests. Each one opens a new chat with Claude with the request already written.</div>
+    <ul class="list">${QUICK_PROMPTS.map((q,i) => `<li><div class="grow"><b>${esc(q.t)}</b><div class="small muted">${esc(q.p.slice(0, 110))}…</div>${claudeBar("qp-" + i, q.p)}${answerBox("qp-" + i)}</div></li>`).join("")}</ul>
+  </div>`;
+}
+
+function vSocial(){
+  const cur = socialLevel();
+  return `
+  <div class="hero"><span class="eyebrow">Level ${cur.lvl} of ${LADDER.length} · ${esc(cur.name)}</span><h1>Get out more, one rung at a time.</h1>
+    <div class="muted">Confidence comes after doing it, not before. Clear 2 challenges on a level to move up. Repeat any challenge as often as you want for XP.</div></div>
+  <div class="level-rail">
+  ${LADDER.map(L => {
+    const cleared = L.items.filter(i => state.social.done[i.id]).length >= 2;
+    return `<div class="level ${L.lvl===cur.lvl && !cleared ? "current" : cleared ? "cleared" : ""}">
+      <div class="spread"><h2>${L.lvl}. ${esc(L.name)}</h2>${cleared ? '<span class="chip good">cleared</span>' : L.lvl===cur.lvl ? '<span class="chip acc">you are here</span>' : ""}</div>
+      <ul class="list">${L.items.map(i => {
+        const d = state.social.done[i.id];
+        const key = "soc-" + i.id;
+        const p = `I'm working on being more social. My challenge: "${i.t}". I get nervous and tend to avoid this. Give me: 3 natural things I could say to start, how to keep it going for a minute, how to exit politely, and one tip to make it less scary. Short and practical.`;
+        prompts[key] = p;
+        return `<li><div class="grow"><div>${esc(i.t)}</div>
+          <div class="meta">${d ? `<span class="chip good">last done ${d.slice(5)}</span>` : ""}<span class="chip">+${L.lvl*15} XP</span></div>
+          ${claudeBar(key, p, "What do I say?")}${answerBox(key)}</div>
+          <button class="btn tiny ${d ? "" : "primary"}" data-act="soc-done" data-id="${i.id}">${d ? "Again" : "Done"}</button></li>`;
+      }).join("")}</ul></div>`;
+  }).join("")}
+  </div>
+  <div class="note">Rule of thumb: say yes to every reasonable invite for the next 30 days, and leave the house once a day even if it's only a walk to a café.</div>`;
+}
+
+function vStyle(){
+  const ups = state.upkeep.map(u => [u, upkeepStatus(u)]);
+  const own = state.owned;
+  const inWish = id => state.budget.wish.some(w => w.src === id) || state.budget.bought.some(w => w.src === id);
+  const row = it => `<li><input type="checkbox" class="check" id="own-${it.id}" data-act="own" data-id="${it.id}" ${own[it.id]?"checked":""}>
+      <label class="grow" for="own-${it.id}"><span class="${own[it.id] ? "title-done" : ""}">${esc(it.name)}</span><div class="meta"><span class="chip">~${money(it.est)}</span></div></label>
+      ${own[it.id] ? "" : inWish(it.id) ? '<span class="chip acc">on wishlist</span>' : `<button class="btn tiny" data-act="to-wish" data-id="${it.id}">+ Wishlist</button>`}</li>`;
+  const p = `I want to dress better on a student budget. These are the wardrobe basics I already own: ${CAPSULE.filter(c => own[c.id]).map(c => c.name).join("; ") || "none of the basics"}. Missing: ${CAPSULE.filter(c => !own[c.id]).map(c => c.name).join("; ")}. Tell me what to buy first for the biggest improvement, how each item should fit, colours that go together, and 5 outfit formulas I can repeat.`;
+  prompts["style"] = p;
+  return `
+  <div class="hero"><span class="eyebrow">Grooming · wardrobe · fragrance</span><h1>Look like you tried, in 10 minutes a day.</h1></div>
+  <div class="panel">
+    <h2>Upkeep schedule</h2>
+    <div class="small muted">Set the last time you did each one. Reminders show on the Today tab when they're due.</div>
+    <ul class="list">${ups.map(([u,s]) => `<li><div class="grow"><div>${esc(u.name)}</div>
+        <div class="meta"><span class="chip ${s.cls}">${s.label}</span>${u.tip ? `<span class="small muted">${esc(u.tip)}</span>` : ""}</div>
+        <div class="row" style="margin-top:6px"><label class="f">Every (days)<input type="number" min="1" id="upe-${u.id}" data-bind="up-every" data-id="${u.id}" value="${u.every}" style="width:80px"></label>
+        <label class="f">Last done<input type="date" id="upl-${u.id}" data-bind="up-last" data-id="${u.id}" value="${u.last || ""}"></label></div></div>
+        <button class="btn tiny" data-act="up-done" data-id="${u.id}">Done today</button></li>`).join("")}</ul>
+  </div>
+  <div class="panel">
+    <div class="spread"><h2>Capsule wardrobe</h2><span class="mono small muted">${CAPSULE.filter(c => own[c.id]).length}/${CAPSULE.length} owned</span></div>
+    <div class="small muted">12 basics that all go together. Fit matters more than brand: shoulders sit at your shoulder, no bunching at the ankle, T-shirt sleeves hit mid-bicep.</div>
+    <ul class="list">${CAPSULE.map(row).join("")}</ul>
+    ${claudeBar("style", p, "What should I buy first?")}${answerBox("style")}
+  </div>
+  <div class="panel">
+    <h2>Grooming kit</h2>
+    <ul class="list">${KIT.map(row).join("")}</ul>
+  </div>
+  <div class="panel">
+    <h2>Fragrance, done right</h2>
+    <ul class="small" style="margin:0;padding-left:18px">
+      <li>Start with one fresh everyday scent. Add an evening one later.</li>
+      <li>Test on skin, not paper, and wait 2 to 3 hours before deciding. Buy samples or decants first.</li>
+      <li>2 to 4 sprays: neck and chest. Don't rub your wrists together.</li>
+      <li>Fragrance on top of a shower and clean clothes. Never as a replacement.</li>
+    </ul>
+  </div>`;
+}
+
+function vBudget(){
+  const b = state.budget, inc = num(b.income), fx = fixedTotal(), left = inc - fx - num(b.save) - num(b.upgrade);
+  const eta = wishEta(), list = wishSorted();
+  const suggestUp = Math.max(0, Math.round((inc - fx) * 0.15));
+  const thisMonth = todayKey().slice(0, 7);
+  const segs = inc > 0 ? [["Fixed", fx, "--c-work"],["Savings", num(b.save), "--c-ess"],["Upgrade fund", num(b.upgrade), "--c-free"],["Spending", Math.max(0,left), "--c-sleep"]] : [];
+  const p = `My monthly net income is ${money(inc)}. Fixed costs: ${b.fixed.map(f => `${f.name} ${money(f.amt)}`).join(", ")} (total ${money(fx)}). I save ${money(b.save)} a month and put ${money(b.upgrade)} into an upgrade fund for clothes, grooming and perfume. Wishlist in priority order: ${list.map(w => `${w.name} ${money(w.price)} (saved ${money(w.saved)})`).join("; ") || "empty"}.
+Review this like a practical financial coach for a student: is it realistic, what should I cut, how big should my emergency fund be, and in what order should I buy my wishlist items for the biggest style upgrade per euro? Suggest cheaper alternatives or second-hand options where it makes sense.`;
+  prompts["budget"] = p;
+  return `
+  <div class="hero"><span class="eyebrow">Monthly plan · ${esc(monthLabel(0))}</span><h1>Pay yourself an upgrade fund.</h1>
+    <div class="muted">Each payday, set aside a fixed amount for clothes, grooming and fragrance. The wishlist shows when you can afford each item without debt.</div></div>
+  <div class="panel">
+    <h2>Monthly money</h2>
+    <div class="grid2">
+      <label class="f">Net income per month<input type="number" min="0" step="10" id="b-income" data-bind="b-income" value="${b.income || ""}" placeholder="0"></label>
+      <label class="f">Savings per month<input type="number" min="0" step="10" id="b-save" data-bind="b-save" value="${b.save || ""}" placeholder="0"></label>
+      <label class="f">Upgrade fund per month<input type="number" min="0" step="5" id="b-upgrade" data-bind="b-upgrade" value="${b.upgrade || ""}" placeholder="0"></label>
+    </div>
+    <details><summary class="small">Fixed costs (${money(fx)})</summary>
+      <div class="stack" style="margin-top:10px">
+      ${b.fixed.map(f => `<div class="row"><input type="text" class="grow" id="fxn-${f.id}" data-bind="fx-name" data-id="${f.id}" value="${esc(f.name)}" aria-label="Cost name"><input type="number" min="0" id="fxa-${f.id}" data-bind="fx-amt" data-id="${f.id}" value="${f.amt || ""}" placeholder="0" style="width:100px" aria-label="Amount"><button class="btn tiny ghost" data-act="fx-del" data-id="${f.id}" aria-label="Remove">✕</button></div>`).join("")}
+      <div><button class="btn tiny" data-act="fx-add">Add cost</button></div></div>
+    </details>
+    ${inc > 0 ? `<div class="track" style="display:flex;height:14px;border-radius:4px;overflow:hidden;background:var(--sunk)">${segs.map(([n,v,c]) => `<span style="width:${Math.max(0, v/inc*100)}%;background:var(${c})" title="${n}"></span>`).join("")}</div>
+      <div class="legend">${segs.map(([n,v,c]) => `<span><i style="background:var(${c})"></i>${n} ${money(v)}</span>`).join("")}</div>
+      ${left < 0 ? `<div class="chip bad">You're ${money(-left)} over income. Lower the upgrade fund or a fixed cost.</div>` : `<div class="small muted">Free spending: <b class="mono">${money(left)}</b> a month, about <b class="mono">${money(left/4.3)}</b> a week.</div>`}
+      <div class="note">Suggested upgrade fund: about <b>${money(suggestUp)}</b> a month (15% of what's left after fixed costs). Build a small emergency fund (one month of fixed costs) at the same time.</div>`
+    : `<div class="empty">Enter your monthly income to see the split.</div>`}
+    ${claudeBar("budget", p, "Review my budget")}${answerBox("budget")}
+  </div>
+  <div class="panel">
+    <div class="spread"><h2>Wishlist</h2><span class="mono small muted">${list.length} items · ${money(list.reduce((a,w) => a + Math.max(0, num(w.price)-num(w.saved)), 0))} to go</span></div>
+    <div class="row">
+      <button class="btn primary" data-act="payday" ${num(b.upgrade) > 0 && list.length ? "" : "disabled"}>Payday: add ${money(b.upgrade)} to the fund</button>
+      ${b.lastPayday === thisMonth ? '<span class="chip warn">already added this month</span>' : ""}
+    </div>
+    ${list.length ? `<ul class="list">${list.map(w => {
+      const pct = Math.min(100, num(w.saved) / Math.max(1, num(w.price)) * 100), ready = num(w.saved) >= num(w.price);
+      return `<li><div class="grow">
+        <div class="spread"><span><b>${esc(w.name)}</b></span><span class="mono small">${money(w.saved)} / ${money(w.price)}</span></div>
+        <div class="progress" style="margin-top:6px"><i style="width:${pct}%"></i></div>
+        <div class="meta"><span class="chip">${esc(w.cat)}</span><span class="chip ${w.pri===1?"acc":""}">${["","must","want","nice"][w.pri]}</span>
+        ${ready ? '<span class="chip good">ready to buy</span>' : eta[w.id] != null ? `<span class="chip">~${esc(monthLabel(eta[w.id]))}</span>` : '<span class="chip">set a monthly fund</span>'}</div>
+        <div class="row" style="margin-top:6px">
+          <select id="wp-${w.id}" data-bind="w-pri" data-id="${w.id}" aria-label="Priority"><option value="1" ${w.pri===1?"selected":""}>Must</option><option value="2" ${w.pri===2?"selected":""}>Want</option><option value="3" ${w.pri===3?"selected":""}>Nice</option></select>
+          <input type="number" min="0" id="wpr-${w.id}" data-bind="w-price" data-id="${w.id}" value="${w.price}" style="width:90px" aria-label="Price">
+          <button class="btn tiny ${ready ? "primary" : ""}" data-act="w-bought" data-id="${w.id}">Bought it</button>
+          <button class="btn tiny ghost" data-act="w-del" data-id="${w.id}" aria-label="Remove">✕</button>
+        </div></div></li>`;}).join("")}</ul>` : `<div class="empty">Empty for now. Add items below, or tap "+ Wishlist" on the Style tab.</div>`}
+    <form class="grid2" data-form="wish-add">
+      <label class="f">Item<input type="text" id="w-name" name="name" placeholder="e.g. Everyday fragrance" required></label>
+      <label class="f">Price<input type="number" min="0" id="w-price" name="price" required></label>
+      <label class="f">Type<select id="w-cat" name="cat"><option>Clothes</option><option>Perfume</option><option>Grooming</option><option>Other</option></select></label>
+      <label class="f">Priority<select id="w-pri" name="pri"><option value="1">Must</option><option value="2" selected>Want</option><option value="3">Nice</option></select></label>
+      <div style="align-self:end"><button class="btn">Add to wishlist</button></div>
+    </form>
+    <div class="small muted">Rules: buy in priority order, never on credit, and wait 48 hours before any non-planned purchase over ${money(30)}.</div>
+  </div>
+  ${b.bought.length ? `<details class="panel"><summary>Bought (${b.bought.length})</summary><ul class="list">${b.bought.slice().reverse().map(w => `<li><div class="grow">${esc(w.name)} <span class="chip">${money(w.price)}</span> <span class="chip good">${esc(w.date || "")}</span></div></li>`).join("")}</ul></details>` : ""}`;
+}
+
+function vSettings(){
+  return `<div class="sheet">
+    <div class="spread"><h2>Settings + backup</h2><button class="btn tiny ghost" data-act="close-settings">Close</button></div>
+    <div class="sync">${syncMode === "account" ? "Saved to your Claude account. Works on every device where you open this page." : "Saved in this browser only. Export a backup now and then."}</div>
+    <div class="grid2">
+      <label class="f">Your first name<input type="text" id="s-name" data-bind="s-name" value="${esc(state.settings.name)}"></label>
+      <label class="f">Currency symbol<input type="text" id="s-cur" data-bind="s-cur" value="${esc(state.settings.currency)}" maxlength="4"></label>
+    </div>
+    <label class="f">Backup (copy this text somewhere safe, or paste a backup here and import)<textarea id="backup">${esc(JSON.stringify(state))}</textarea></label>
+    <div class="row">
+      <button class="btn tiny" data-act="copy-backup">Copy backup</button>
+      <button class="btn tiny" data-act="import">Import pasted backup</button>
+      ${confirmReset ? `<span class="small">Erase everything?</span><button class="btn tiny danger" data-act="reset-yes">Yes, erase</button><button class="btn tiny" data-act="reset-no">Cancel</button>` : `<button class="btn tiny danger" data-act="reset">Reset all data</button>`}
+    </div>
+  </div>`;
+}
+
+/* ---------- actions ---------- */
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, 2400); }
+async function copy(text, el){
+  try { await navigator.clipboard.writeText(text); toast("Copied"); }
+  catch(e){ if (el && el.select) { el.select(); toast("Selected. Press Ctrl/Cmd+C to copy."); } else toast("Copy isn't allowed here. Use \"Open in Claude\"."); }
+}
+const findIn = (arr, id) => arr.find(x => x.id === id);
+
+document.addEventListener("click", e => {
+  const tabEl = e.target.closest("[data-tab]");
+  if (tabEl){ e.preventDefault(); tab = tabEl.dataset.tab; try { localStorage.setItem("glowup-tab", tab); } catch(_) {} render(); window.scrollTo(0,0); return; }
+  if (e.target.closest("#gear")){ showSettings = !showSettings; confirmReset = false; render(); return; }
+  const a = e.target.closest("[data-act]"); if (!a) return;
+  const id = a.dataset.id, act = a.dataset.act, k = todayKey();
+  switch (act){
+    case "habit": {
+      const l = dayLog(k); const was = !!l.h[id]; l.h[id] = !was; addXP(was ? -10 : 10);
+      if (!was && habitsDone(k) === state.habits.length) { addXP(30); toast("All habits done. +30 bonus XP"); }
+      break; }
+    case "habit-del": state.habits = state.habits.filter(h => h.id !== id); break;
+    case "task-done": { const t = findIn(state.tasks, id); if (t){ t.done = !t.done; const x = t.pri === 1 ? 30 : 20; addXP(t.done ? x : -x); } break; }
+    case "task-del": state.tasks = state.tasks.filter(t => t.id !== id); break;
+    case "clear-done": state.tasks = state.tasks.filter(t => !t.done); break;
+    case "up-done": { const u = findIn(state.upkeep, id); if (u){ if (u.last !== k) addXP(15); u.last = k; toast(u.name + " logged. +15 XP"); } break; }
+    case "soc-done": {
+      const L = LADDER.find(L => L.items.some(i => i.id === id)); state.social.done[id] = k; addXP(L.lvl * 15);
+      toast(`Nice. +${L.lvl*15} XP`); break; }
+    case "own": state.owned[id] = !state.owned[id]; break;
+    case "to-wish": {
+      const it = CAPSULE.concat(KIT).find(x => x.id === id);
+      if (it) { state.budget.wish.push({id:uid(), src:it.id, name:it.name, price:it.est, saved:0, pri:2, cat:it.cat || (CAPSULE.includes(it) ? "Clothes" : "Grooming"), created:Date.now()}); toast("Added to wishlist (Budget tab)"); }
+      break; }
+    case "fx-add": state.budget.fixed.push({id:uid(), name:"New cost", amt:0}); break;
+    case "fx-del": state.budget.fixed = state.budget.fixed.filter(f => f.id !== id); break;
+    case "payday": {
+      const thisMonth = k.slice(0,7);
+      let pot = num(state.budget.upgrade);
+      for (const w of wishSorted()){ if (pot <= 0) break; const need = Math.max(0, num(w.price) - num(w.saved)); const put = Math.min(need, pot); w.saved = num(w.saved) + put; pot -= put; }
+      state.budget.lastPayday = thisMonth; addXP(20);
+      toast(pot > 0 ? `Fund added. ${money(pot)} left over, everything is covered` : "Fund added to your wishlist");
+      break; }
+    case "w-bought": {
+      const w = findIn(state.budget.wish, id); if (w){ state.budget.wish = state.budget.wish.filter(x => x.id !== id); state.budget.bought.push({...w, date:k}); if (w.src) state.owned[w.src] = true; addXP(25); toast("Enjoy it. +25 XP"); }
+      break; }
+    case "w-del": state.budget.wish = state.budget.wish.filter(w => w.id !== id); break;
+    case "ask": {
+      const key = a.dataset.key; const p = prompts[key]; if (!p) return;
+      ask(key, p, text => { if (key.startsWith("task-")) { const t = findIn(state.tasks, key.slice(5)); if (t) { t.steps = text; save(); } } });
+      return; }
+    case "copyprompt": copy(prompts[a.dataset.key] || ""); return;
+    case "close-settings": showSettings = false; break;
+    case "copy-backup": copy($("#backup").value, $("#backup")); return;
+    case "import": {
+      try { const s = JSON.parse($("#backup").value); if (!s || typeof s !== "object" || !Array.isArray(s.habits)) throw 0; state = mergeState(s); toast("Backup imported"); }
+      catch(_) { toast("That text isn't a valid backup."); return; }
+      break; }
+    case "reset": confirmReset = true; render(); return;
+    case "reset-no": confirmReset = false; render(); return;
+    case "reset-yes": state = freshState(); confirmReset = false; showSettings = false; toast("Everything was reset"); break;
+    default: return;
+  }
+  save(); render();
+});
+
+document.addEventListener("change", e => {
+  const el = e.target, b = el.dataset && el.dataset.bind; if (!b) return;
+  const id = el.dataset.id, v = el.value;
+  switch (b){
+    case "habit-name": { const h = findIn(state.habits, id); if (h && v.trim()) h.name = v.trim(); break; }
+    case "week": state.week.days[+el.dataset.day][el.dataset.field] = Math.min(24, Math.max(0, num(v))); state.week.example = false; break;
+    case "up-every": { const u = findIn(state.upkeep, id); if (u) u.every = Math.max(1, Math.round(num(v)) || 1); break; }
+    case "up-last": { const u = findIn(state.upkeep, id); if (u) u.last = v || null; break; }
+    case "b-income": state.budget.income = num(v); break;
+    case "b-save": state.budget.save = num(v); break;
+    case "b-upgrade": state.budget.upgrade = num(v); break;
+    case "fx-name": { const f = findIn(state.budget.fixed, id); if (f) f.name = v; break; }
+    case "fx-amt": { const f = findIn(state.budget.fixed, id); if (f) f.amt = num(v); break; }
+    case "w-pri": { const w = findIn(state.budget.wish, id); if (w) w.pri = +v; break; }
+    case "w-price": { const w = findIn(state.budget.wish, id); if (w) w.price = num(v); break; }
+    case "s-name": state.settings.name = v.trim(); break;
+    case "s-cur": state.settings.currency = v.trim() || "€"; break;
+    default: return;
+  }
+  save(); render();
+});
+
+document.addEventListener("submit", e => {
+  const f = e.target.closest("form[data-form]"); if (!f) return;
+  e.preventDefault();
+  const d = Object.fromEntries(new FormData(f).entries());
+  switch (f.dataset.form){
+    case "habit-add": if (d.name.trim()) state.habits.push({id:"h-" + uid(), name:d.name.trim(), cat:"Custom"}); break;
+    case "task-add":
+      if (!d.title.trim()) return;
+      state.tasks = state.tasks.filter(t => !t.example);
+      state.tasks.push({id:uid(), title:d.title.trim(), cat:d.cat, due:d.due || null, pri:+d.pri, done:false, steps:""});
+      toast("Task added"); break;
+    case "wish-add":
+      if (!d.name.trim()) return;
+      state.budget.wish.push({id:uid(), name:d.name.trim(), price:num(d.price), saved:0, pri:+d.pri, cat:d.cat, created:Date.now()}); break;
+  }
+  save(); render();
+});
+
+/* ---------- boot ---------- */
+loadLocal();
+render();
+initCloud();
+initSample();
+})();
+</script>
