@@ -61,10 +61,8 @@ button {
   right: -6px;
   width: 44px;
   height: 44px;
-  border: 0;
   border-radius: 50%;
-  background: transparent;
-  color: #7a8ca3;
+  color: #5d7088;
   display: grid;
   place-items: center;
 }
@@ -161,38 +159,35 @@ button {
   gap: 14px;
 }
 
-.btn-primary {
-  flex: 1;
-  height: 60px;
-  border: 0;
-  border-radius: 18px;
-  background: #1e7fe0;
-  color: #ffffff;
-  font-size: 20px;
-  font-weight: 700;
-  box-shadow: 0 6px 18px rgba(30, 127, 224, 0.3);
-  transition: transform 0.1s ease;
+/* ---- liquid glass buttons ---- */
+
+/* Clear glass: the round buttons and the bell. Same recipe as the tab bar. */
+.btn-round,
+.btn-corner {
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(236, 243, 250, 0.6));
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow:
+    0 8px 22px rgba(16, 35, 58, 0.12),
+    0 1px 3px rgba(16, 35, 58, 0.08),
+    inset 0 1px 1px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 2px rgba(16, 35, 58, 0.06);
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 
-.btn-primary:active {
-  transform: scale(0.97);
-}
-
-.btn-primary.small {
-  flex: 0 0 auto;
-  height: 52px;
-  padding: 0 22px;
-  font-size: 17px;
-  box-shadow: none;
+.btn-corner {
+  box-shadow:
+    0 4px 12px rgba(16, 35, 58, 0.1),
+    inset 0 1px 1px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 2px rgba(16, 35, 58, 0.05);
 }
 
 .btn-round {
   flex: 0 0 auto;
   width: 60px;
   height: 60px;
-  border-radius: 18px;
-  border: 0;
-  background: #eef5fc;
+  border-radius: 50%;
   color: #1e7fe0;
   display: grid;
   place-items: center;
@@ -201,6 +196,53 @@ button {
 .btn-round:disabled {
   color: #b8c6d6;
   cursor: default;
+}
+
+/* Pressing darkens the glass and squeezes it a little, like iOS. */
+.btn-round:not(:disabled):active,
+.btn-corner:active {
+  transform: scale(0.92);
+  background: linear-gradient(180deg, rgba(225, 233, 242, 0.85), rgba(208, 219, 231, 0.75));
+  box-shadow:
+    0 3px 10px rgba(16, 35, 58, 0.1),
+    inset 0 1px 3px rgba(16, 35, 58, 0.12);
+}
+
+/* Blue tinted glass: the main action. */
+.btn-primary {
+  flex: 1;
+  height: 60px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(79, 168, 250, 0.95), rgba(30, 127, 224, 0.92) 55%, rgba(24, 112, 204, 0.95));
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 700;
+  text-shadow: 0 1px 1px rgba(10, 60, 120, 0.25);
+  box-shadow:
+    0 10px 24px rgba(30, 127, 224, 0.32),
+    0 2px 4px rgba(30, 127, 224, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.6),
+    inset 0 -2px 4px rgba(10, 60, 120, 0.25);
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary:active {
+  transform: scale(0.96);
+  background: linear-gradient(180deg, rgba(52, 145, 232, 0.97), rgba(22, 110, 200, 0.95) 55%, rgba(18, 96, 180, 0.97));
+  box-shadow:
+    0 4px 12px rgba(30, 127, 224, 0.28),
+    inset 0 1px 1px rgba(255, 255, 255, 0.4),
+    inset 0 -1px 3px rgba(10, 60, 120, 0.3);
+}
+
+.btn-primary.small {
+  flex: 0 0 auto;
+  height: 52px;
+  padding: 0 22px;
+  font-size: 17px;
 }
 
 /* ---- sheets ---- */
