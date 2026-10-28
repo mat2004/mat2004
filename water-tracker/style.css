@@ -619,106 +619,157 @@ button.cal-day:active {
   color: #ffffff;
 }
 
-.cal-day.today {
-  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--blue);
-}
-
 .cal-day.future {
   background: transparent;
   color: #c4d0dc;
 }
 
-.day-list {
-  list-style: none;
-  margin: 16px 0 0;
-  padding: 4px 16px;
+/* ---- selected day ---- */
+.cal-day.today:not(.met) {
+  color: var(--blue);
+  font-weight: 800;
 }
 
-.day-row {
-  position: relative;
-  cursor: pointer;
+.cal-day.selected {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--blue);
+}
+
+.day-card {
+  margin-top: 16px;
+  padding: 16px 16px 14px;
+  scroll-margin-bottom: calc(var(--tabbar) + 16px);
+}
+
+.day-card-head {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 6px;
-  margin: 0 -6px;
-  border-radius: 16px;
-  transition: background 0.15s ease;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 14px;
 }
 
-/* Straight divider between rows (a border would curve with the rounded corners). */
-.day-row + .day-row::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 6px;
-  right: 6px;
-  height: 1px;
-  background: rgba(16, 35, 58, 0.07);
+.day-card-head h3 {
+  margin: 0;
+  font-size: 19px;
 }
 
-.day-row:active {
-  background: rgba(16, 35, 58, 0.06);
-}
-
-.day-date {
-  width: 40px;
-  text-align: center;
-  line-height: 1.15;
-}
-
-.day-date b {
-  display: block;
-  font-size: 20px;
-}
-
-.day-date span {
-  font-size: 12px;
+.sel-date {
+  margin-top: 2px;
+  font-size: 13px;
   color: #7a8ca3;
 }
 
-.day-main {
-  flex: 1;
-}
-
-.day-amount {
+.link-btn {
+  border: 0;
+  background: rgba(30, 127, 224, 0.08);
+  color: var(--blue);
   font-size: 15px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 999px;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.link-btn:active {
+  transform: scale(0.94);
+  background: rgba(30, 127, 224, 0.16);
+}
+
+.link-btn[hidden] {
+  display: none;
+}
+
+.day-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.day-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.day-stats b {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+
+.day-stats span {
+  font-size: 13px;
   color: #5d7088;
-  margin-bottom: 6px;
 }
 
-.day-amount b {
-  color: #10233a;
-  font-size: 17px;
-}
-
-.day-amount .check {
+.day-stats span.met {
   color: #138a43;
-  font-weight: 700;
+  font-weight: 600;
 }
 
-.day-bar {
-  height: 8px;
-  border-radius: 4px;
-  background: rgba(16, 35, 58, 0.06);
-  overflow: hidden;
+.chart-tip {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: #5d7088;
+  min-height: 18px;
 }
 
-.day-bar i {
+.chart-tip b {
+  color: #10233a;
+}
+
+.day-chart {
   display: block;
-  height: 100%;
-  border-radius: 4px;
-  background: #6ebeff;
+  width: 100%;
+  height: auto;
+  overflow: visible;
 }
 
-.day-row.met .day-bar i {
-  background: var(--blue);
+.day-chart .grid {
+  stroke: rgba(16, 35, 58, 0.08);
+  stroke-width: 1;
 }
 
-.day-empty {
-  padding: 18px 0;
-  text-align: center;
+.day-chart .grid.base {
+  stroke: rgba(16, 35, 58, 0.18);
+}
+
+.day-chart .axis {
+  font-size: 10px;
+  fill: #7a8ca3;
+  font-variant-numeric: tabular-nums;
+}
+
+.day-chart .bar {
+  fill: var(--blue);
+  transition: opacity 0.15s ease;
+}
+
+.day-chart .bar.dim {
+  opacity: 0.3;
+}
+
+.day-chart .hit {
+  fill: transparent;
+  cursor: pointer;
+}
+
+.chart-note,
+.chart-empty {
+  margin: 10px 0 0;
+  font-size: 13px;
   color: #7a8ca3;
+}
+
+.chart-empty {
+  text-align: center;
+  padding: 18px 0 10px;
+  font-size: 15px;
+}
+
+.chart-empty[hidden],
+.chart-note[hidden],
+#sel-chart-wrap[hidden] {
+  display: none;
 }
 
 /* ---- tab bar (iOS "liquid glass" style) ---- */
@@ -825,6 +876,13 @@ button.cal-day:active {
   padding: 0;
   max-height: 30vh;
   overflow-y: auto;
+}
+
+.drinks time {
+  color: #7a8ca3;
+  font-weight: 500;
+  margin-right: 10px;
+  font-variant-numeric: tabular-nums;
 }
 
 .drinks li {

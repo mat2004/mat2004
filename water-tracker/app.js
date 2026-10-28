@@ -58,12 +58,26 @@
   var state = load();
   state.dayGoals = state.dayGoals || {};
 
+  // A drink is { ml, t } where t is when it was logged. Drinks logged before times were
+  // saved (and ones added later to a past day) are plain numbers or have no t.
+  function mlOf(drink) {
+    return typeof drink === "number" ? drink : drink.ml;
+  }
+
+  function timeOf(drink) {
+    return typeof drink === "number" ? null : drink.t || null;
+  }
+
+  function sumMl(drinks) {
+    return drinks.reduce(function (sum, drink) { return sum + mlOf(drink); }, 0);
+  }
+
   function todayEntries() {
     return state.days[todayKey()] || [];
   }
 
   function todayTotalMl() {
-    return todayEntries().reduce(function (sum, ml) { return sum + ml; }, 0);
+    return sumMl(todayEntries());
   }
 
   // ---------- formatting ----------
@@ -113,7 +127,7 @@
     ml = Math.round(ml);
     if (!(ml > 0)) return;
     var key = todayKey();
-    (state.days[key] = state.days[key] || []).push(ml);
+    (state.days[key] = state.days[key] || []).push({ ml: ml, t: Date.now() });
     rememberGoal();
     prune();
     save();
@@ -124,7 +138,7 @@
   function undo() {
     var entries = todayEntries();
     if (!entries.length) return;
-    var ml = entries.pop();
+    var ml = mlOf(entries.pop());
     save();
     render();
     toast("Removed " + ml + " ml");
@@ -309,10 +323,9 @@
 
   var MONTHS = ["January", "February", "March", "April", "May", "June", "July",
     "August", "September", "October", "November", "December"];
-  var WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   function dayTotalMl(key) {
-    return (state.days[key] || []).reduce(function (sum, ml) { return sum + ml; }, 0);
+    return sumMl(state.days[key] || []);
   }
 
   function dayGoalMl(key) {
@@ -355,6 +368,7 @@
 
   var shownMonth = new Date();
   shownMonth.setDate(1);
+  var selectedDay = todayKey();
 
   function renderHistory() {
     var year = shownMonth.getFullYear();
@@ -369,60 +383,191 @@
     $("month-title").textContent = MONTHS[month] + " " + year;
     $("month-next").disabled = isCurrentMonth;
 
-    // Calendar: each day is a small circle that fills with water.
+    // Calendar: each day is a small circle that fills with water. Tap one to see its stats.
     var html = "";
     var blanks = (new Date(year, month, 1).getDay() + 6) % 7; // weeks start on Monday
     for (var b = 0; b < blanks; b++) html += "<span></span>";
     var goalsMet = 0;
-    var listHtml = "";
     for (var day = 1; day <= daysInMonth; day++) {
       var key = dateKey(new Date(year, month, day));
-      var total = dayTotalMl(key);
-      var goal = dayGoalMl(key);
-      var pct = Math.min(Math.round((total / goal) * 100), 100);
+      var pct = Math.min(Math.round((dayTotalMl(key) / dayGoalMl(key)) * 100), 100);
       var met = goalMet(key);
       if (met) goalsMet++;
-      var cls = "cal-day" + (met ? " met" : "") + (key === today ? " today" : "") + (key > today ? " future" : "");
+      var cls = "cal-day" + (met ? " met" : "") + (key === today ? " today" : "") +
+        (key > today ? " future" : "") + (key === selectedDay ? " selected" : "");
       html += '<button class="' + cls + '" data-day="' + key + '" style="--fill:' + pct + '%">' + day + "</button>";
-
-      if (total > 0) {
-        var weekday = WEEKDAYS[new Date(year, month, day).getDay()];
-        listHtml = '<li class="day-row' + (met ? " met" : "") + '" data-day="' + key + '">' +
-          '<div class="day-date"><b>' + day + "</b><span>" + weekday + "</span></div>" +
-          '<div class="day-main">' +
-            '<div class="day-amount"><b>' + litres(total) + " L</b> of " + litres(goal) + " L" + (met ? ' <span class="check">✓</span>' : "") + "</div>" +
-            '<div class="day-bar"><i style="width:' + pct + '%"></i></div>' +
-          "</div></li>" + listHtml; // newest first
-      }
     }
     $("cal").innerHTML = html;
     $("stat-goals").textContent = goalsMet;
     $("stat-goals-label").textContent = "goals reached in " + MONTHS[month].slice(0, 3);
-    $("day-list").innerHTML = listHtml || '<li class="day-empty">No water logged in ' + MONTHS[month] + ".</li>";
+    renderDayStats();
   }
-
-  // Tapping a day shows its drinks, and lets you add forgotten water or remove a mistake.
-  var openDayKey = null;
 
   function keyToDate(key) {
     var p = key.split("-");
     return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
   }
 
+  function longDate(key) {
+    return keyToDate(key).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+  }
+
+  function clock(t) {
+    return new Date(t).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function hourLabel(h) {
+    return (h < 10 ? "0" : "") + h + ":00";
+  }
+
+  // ---------- selected day: stats + chart of water per hour ----------
+
+  var CHART_W = 340;
+  var CHART_H = 150;
+  var PLOT_LEFT = 44; // room for the y labels
+  var PLOT_TOP = 8;
+  var PLOT_BOTTOM = 22; // room for the x labels
+  var dayHours = []; // ml per hour for the selected day
+  var dayHourCounts = [];
+
+  function renderDayStats() {
+    var key = selectedDay;
+    var today = todayKey();
+    var y = new Date();
+    y.setDate(y.getDate() - 1);
+    var drinks = state.days[key] || [];
+    var total = sumMl(drinks);
+    var future = key > today;
+
+    $("sel-title").textContent = key === today ? "Today" : key === dateKey(y) ? "Yesterday" : longDate(key);
+    $("sel-date").textContent = key === today || key === dateKey(y) ? longDate(key) : "";
+    $("sel-edit").hidden = future;
+    $("sel-total").textContent = litres(total) + " L";
+    $("sel-goal").textContent = "of " + litres(dayGoalMl(key)) + " L" + (goalMet(key) ? " ✓" : "");
+    $("sel-goal").classList.toggle("met", goalMet(key));
+    $("sel-count").textContent = drinks.length;
+    $("sel-count-label").textContent = drinks.length === 1 ? "drink" : "drinks";
+    $("sel-avg").textContent = drinks.length ? Math.round(total / drinks.length) + " ml" : "–";
+
+    dayHours = [];
+    dayHourCounts = [];
+    for (var h = 0; h < 24; h++) {
+      dayHours.push(0);
+      dayHourCounts.push(0);
+    }
+    var untimedMl = 0;
+    var untimedCount = 0;
+    drinks.forEach(function (drink) {
+      var t = timeOf(drink);
+      if (t) {
+        var hour = new Date(t).getHours();
+        dayHours[hour] += mlOf(drink);
+        dayHourCounts[hour]++;
+      } else {
+        untimedMl += mlOf(drink);
+        untimedCount++;
+      }
+    });
+    var timedCount = drinks.length - untimedCount;
+
+    var message = "";
+    if (future) message = "This day hasn't come yet.";
+    else if (!drinks.length) message = "No water logged this day.";
+    else if (!timedCount) message = "This day has no drink times saved, so there's no chart for it.";
+    $("sel-chart-wrap").hidden = !!message;
+    $("sel-empty").textContent = message;
+    $("sel-empty").hidden = !message;
+    $("sel-note").hidden = !(timedCount && untimedCount);
+    $("sel-note").textContent = untimedCount
+      ? "+ " + untimedMl + " ml from " + untimedCount + (untimedCount === 1 ? " drink" : " drinks") + " without a time, not shown in the chart."
+      : "";
+    if (!message) renderChart(null);
+  }
+
+  function renderChart(activeHour) {
+    var plotW = CHART_W - PLOT_LEFT;
+    var plotH = CHART_H - PLOT_TOP - PLOT_BOTTOM;
+    var baseY = PLOT_TOP + plotH;
+    var peak = Math.max.apply(null, dayHours);
+    var step = peak > 1000 ? 500 : 250;
+    var max = Math.max(step * 2, Math.ceil(peak / step) * step);
+    var col = plotW / 24;
+    var gap = 2;
+    var svg = "";
+
+    // Recessive grid: baseline, middle and top, with y labels.
+    [0, max / 2, max].forEach(function (v) {
+      var gy = baseY - (v / max) * plotH;
+      svg += '<line class="grid' + (v === 0 ? " base" : "") + '" x1="' + PLOT_LEFT + '" x2="' + CHART_W + '" y1="' + gy + '" y2="' + gy + '"/>';
+      svg += '<text class="axis" x="' + (PLOT_LEFT - 6) + '" y="' + (gy + 3.5) + '" text-anchor="end">' + v + " ml</text>";
+    });
+    [0, 6, 12, 18, 24].forEach(function (h) {
+      var anchor = h === 0 ? "start" : h === 24 ? "end" : "middle";
+      svg += '<text class="axis" x="' + (PLOT_LEFT + h * col) + '" y="' + (CHART_H - 6) + '" text-anchor="' + anchor + '">' + hourLabel(h) + "</text>";
+    });
+
+    // One bar per hour, rounded at the top and sitting on the baseline.
+    for (var h = 0; h < 24; h++) {
+      var x = PLOT_LEFT + h * col + gap / 2;
+      var w = col - gap;
+      if (dayHours[h] > 0) {
+        var bh = Math.max(3, (dayHours[h] / max) * plotH);
+        var r = Math.min(4, w / 2, bh);
+        var top = baseY - bh;
+        var cls = "bar" + (activeHour === null ? "" : h === activeHour ? " active" : " dim");
+        svg += '<path class="' + cls + '" d="M' + x + " " + baseY + " V" + (top + r) + " Q" + x + " " + top + " " + (x + r) + " " + top +
+          " H" + (x + w - r) + " Q" + (x + w) + " " + top + " " + (x + w) + " " + (top + r) + " V" + baseY + ' Z"/>';
+      }
+      // Tap target: the whole column, bigger than the bar.
+      svg += '<rect class="hit" data-hour="' + h + '" x="' + (PLOT_LEFT + h * col) + '" y="' + PLOT_TOP + '" width="' + col + '" height="' + plotH + '"/>';
+    }
+    $("sel-chart").innerHTML = svg;
+
+    var tip = $("sel-tip");
+    if (activeHour !== null && dayHours[activeHour] > 0) {
+      var n = dayHourCounts[activeHour];
+      tip.innerHTML = "<b>" + hourLabel(activeHour) + "–" + hourLabel(activeHour + 1) + "</b> · " + dayHours[activeHour] + " ml · " + n + (n === 1 ? " drink" : " drinks");
+    } else {
+      tip.textContent = "Water per hour. Tap a bar for details.";
+    }
+  }
+
+  $("sel-chart").addEventListener("click", function (e) {
+    var hit = e.target.closest("[data-hour]");
+    var hour = hit ? Number(hit.dataset.hour) : null;
+    renderChart(hour !== null && dayHours[hour] > 0 ? hour : null);
+  });
+
+  $("cal").addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-day]");
+    if (!btn) return;
+    selectedDay = btn.dataset.day;
+    renderHistory();
+    $("day-card").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  });
+
+  $("sel-edit").addEventListener("click", function () {
+    openDay(selectedDay);
+  });
+
+  // ---------- edit a day (sheet) ----------
+  // Lets you add forgotten water or remove a mistake.
+  var openDayKey = null;
+
   function renderDaySheet() {
     var key = openDayKey;
     var entries = state.days[key] || [];
     var total = dayTotalMl(key);
-    $("day-title").textContent = keyToDate(key).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+    $("day-title").textContent = longDate(key);
     $("day-summary").innerHTML = "<b>" + litres(total) + " L</b> of " + litres(dayGoalMl(key)) + " L" +
       (goalMet(key) ? ' <span class="check">✓</span>' : "");
     $("day-drinks").innerHTML = entries.length
-      ? entries.map(function (ml, i) {
-          return '<li><span>' + ml + ' ml</span><button data-remove="' + i + '" aria-label="Remove ' + ml + ' ml">×</button></li>';
+      ? entries.map(function (drink, i) {
+          var ml = mlOf(drink);
+          var t = timeOf(drink);
+          return '<li><span>' + (t ? '<time>' + clock(t) + "</time>" : "") + ml + ' ml</span><button data-remove="' + i + '" aria-label="Remove ' + ml + ' ml">×</button></li>';
         }).join("")
-      : '<li class="drinks-empty">' + (key > todayKey() ? "This day hasn't come yet." : "No water logged this day.") + "</li>";
-    // You can't drink water in the future.
-    $("day-add").hidden = key > todayKey();
+      : '<li class="drinks-empty">No water logged this day.</li>';
   }
 
   function openDay(key) {
@@ -448,21 +593,13 @@
     renderDaySheet();
   }
 
+  // Water added to today gets the current time; water added to a past day has no time.
   function addToDay(ml) {
     ml = Math.round(ml);
     if (!(ml > 0)) return;
-    changeDay(openDayKey, function (entries) { entries.push(ml); });
+    var drink = openDayKey === todayKey() ? { ml: ml, t: Date.now() } : { ml: ml };
+    changeDay(openDayKey, function (entries) { entries.push(drink); });
   }
-
-  $("cal").addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-day]");
-    if (btn) openDay(btn.dataset.day);
-  });
-
-  $("day-list").addEventListener("click", function (e) {
-    var row = e.target.closest("[data-day]");
-    if (row) openDay(row.dataset.day);
-  });
 
   $("day-drinks").addEventListener("click", function (e) {
     var btn = e.target.closest("[data-remove]");
@@ -502,6 +639,7 @@
     if (name === "history") {
       shownMonth = new Date();
       shownMonth.setDate(1);
+      selectedDay = todayKey();
       renderHistory();
       $("history").scrollTop = 0;
     }

@@ -97,7 +97,27 @@
     <div id="cal" class="cal"></div>
     </div>
 
-    <ul id="day-list" class="glass-card day-list"></ul>
+    <!-- Stats for the day tapped in the calendar -->
+    <div id="day-card" class="glass-card day-card">
+      <div class="day-card-head">
+        <div>
+          <h3 id="sel-title">Today</h3>
+          <div id="sel-date" class="sel-date"></div>
+        </div>
+        <button id="sel-edit" class="link-btn">Edit</button>
+      </div>
+      <div class="day-stats">
+        <div><b id="sel-total">0 L</b><span id="sel-goal">of 2.5 L</span></div>
+        <div><b id="sel-count">0</b><span id="sel-count-label">drinks</span></div>
+        <div><b id="sel-avg">–</b><span>per drink</span></div>
+      </div>
+      <div id="sel-chart-wrap">
+        <p id="sel-tip" class="chart-tip"></p>
+        <svg id="sel-chart" class="day-chart" viewBox="0 0 340 150" role="img" aria-label="Water per hour"></svg>
+        <p id="sel-note" class="chart-note" hidden></p>
+      </div>
+      <p id="sel-empty" class="chart-empty" hidden></p>
+    </div>
   </section>
 
   <nav id="tabbar" class="tabbar" role="tablist" data-active="intake">
@@ -185,7 +205,7 @@
       <p id="day-summary" class="day-summary"></p>
       <ul id="day-drinks" class="drinks"></ul>
       <div id="day-add">
-      <p class="hint">Forgot to log something? Add it to this day:</p>
+      <p class="hint">Forgot to log something? Add it here:</p>
       <div class="quick">
         <button data-day-ml="100">100 ml</button>
         <button data-day-ml="200">200 ml</button>
