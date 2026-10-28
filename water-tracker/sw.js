@@ -1,6 +1,6 @@
 // Caches the app so it opens instantly and works offline.
 // Bump CACHE when you change any file so phones pick up the new version.
-var CACHE = "water-v1";
+var CACHE = "water-v2";
 var FILES = [
   "./",
   "index.html",
@@ -13,7 +13,7 @@ var FILES = [
 ];
 
 self.addEventListener("install", function (e) {
-  e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }));
+  e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES.map(function (f) { return new Request(f, { cache: "reload" }); })); }));
   self.skipWaiting();
 });
 

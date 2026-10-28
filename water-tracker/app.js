@@ -217,6 +217,11 @@
   });
   setInterval(checkNewDay, 60 * 1000);
 
+  // ---------- no zooming ----------
+
+  // iOS ignores user-scalable=no, so block pinch-zoom here.
+  document.addEventListener("gesturestart", function (e) { e.preventDefault(); });
+
   // ---------- start ----------
 
   render();
