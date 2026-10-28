@@ -173,6 +173,33 @@
     </div>
   </div>
 
+  <!-- Day details sheet (tap a day in History) -->
+  <div id="day-sheet" class="sheet" hidden>
+    <div class="sheet-backdrop" data-close></div>
+    <div class="sheet-panel" role="dialog" aria-labelledby="day-title">
+      <div class="grabber"></div>
+      <h2 id="day-title"></h2>
+      <p id="day-summary" class="day-summary"></p>
+      <ul id="day-drinks" class="drinks"></ul>
+      <div id="day-add">
+      <p class="hint">Forgot to log something? Add it to this day:</p>
+      <div class="quick">
+        <button data-day-ml="100">100 ml</button>
+        <button data-day-ml="200">200 ml</button>
+        <button data-day-ml="250">250 ml</button>
+        <button data-day-ml="330">330 ml</button>
+        <button data-day-ml="500">500 ml</button>
+        <button data-day-ml="750">750 ml</button>
+      </div>
+      <form id="day-custom-form" class="custom">
+        <input id="day-custom-ml" type="number" inputmode="numeric" min="1" max="5000" placeholder="Other amount">
+        <span class="suffix">ml</span>
+        <button type="submit" class="btn-primary small">Add</button>
+      </form>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast" hidden></div>
 
   <script src="app.js"></script>

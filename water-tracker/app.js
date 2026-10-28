@@ -149,6 +149,7 @@
     $("add-sheet").hidden = true;
     $("goal-sheet").hidden = true;
     $("remind-sheet").hidden = true;
+    $("day-sheet").hidden = true;
     document.activeElement && document.activeElement.blur();
   }
 
@@ -382,11 +383,11 @@
       var met = goalMet(key);
       if (met) goalsMet++;
       var cls = "cal-day" + (met ? " met" : "") + (key === today ? " today" : "") + (key > today ? " future" : "");
-      html += '<span class="' + cls + '" style="--fill:' + pct + '%">' + day + "</span>";
+      html += '<button class="' + cls + '" data-day="' + key + '" style="--fill:' + pct + '%">' + day + "</button>";
 
       if (total > 0) {
         var weekday = WEEKDAYS[new Date(year, month, day).getDay()];
-        listHtml = '<li class="day-row' + (met ? " met" : "") + '">' +
+        listHtml = '<li class="day-row' + (met ? " met" : "") + '" data-day="' + key + '">' +
           '<div class="day-date"><b>' + day + "</b><span>" + weekday + "</span></div>" +
           '<div class="day-main">' +
             '<div class="day-amount"><b>' + litres(total) + " L</b> of " + litres(goal) + " L" + (met ? ' <span class="check">✓</span>' : "") + "</div>" +
@@ -399,6 +400,92 @@
     $("stat-goals-label").textContent = "goals reached in " + MONTHS[month].slice(0, 3);
     $("day-list").innerHTML = listHtml || '<li class="day-empty">No water logged in ' + MONTHS[month] + ".</li>";
   }
+
+  // Tapping a day shows its drinks, and lets you add forgotten water or remove a mistake.
+  var openDayKey = null;
+
+  function keyToDate(key) {
+    var p = key.split("-");
+    return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  }
+
+  function renderDaySheet() {
+    var key = openDayKey;
+    var entries = state.days[key] || [];
+    var total = dayTotalMl(key);
+    $("day-title").textContent = keyToDate(key).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+    $("day-summary").innerHTML = "<b>" + litres(total) + " L</b> of " + litres(dayGoalMl(key)) + " L" +
+      (goalMet(key) ? ' <span class="check">✓</span>' : "");
+    $("day-drinks").innerHTML = entries.length
+      ? entries.map(function (ml, i) {
+          return '<li><span>' + ml + ' ml</span><button data-remove="' + i + '" aria-label="Remove ' + ml + ' ml">×</button></li>';
+        }).join("")
+      : '<li class="drinks-empty">' + (key > todayKey() ? "This day hasn't come yet." : "No water logged this day.") + "</li>";
+    // You can't drink water in the future.
+    $("day-add").hidden = key > todayKey();
+  }
+
+  function openDay(key) {
+    openDayKey = key;
+    $("day-custom-ml").value = "";
+    renderDaySheet();
+    openSheet("day-sheet");
+  }
+
+  function changeDay(key, change) {
+    var entries = state.days[key] || [];
+    change(entries);
+    if (entries.length) {
+      state.days[key] = entries;
+      if (!state.dayGoals[key]) state.dayGoals[key] = state.goal;
+    } else {
+      delete state.days[key];
+    }
+    prune();
+    save();
+    render();
+    renderHistory();
+    renderDaySheet();
+  }
+
+  function addToDay(ml) {
+    ml = Math.round(ml);
+    if (!(ml > 0)) return;
+    changeDay(openDayKey, function (entries) { entries.push(ml); });
+  }
+
+  $("cal").addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-day]");
+    if (btn) openDay(btn.dataset.day);
+  });
+
+  $("day-list").addEventListener("click", function (e) {
+    var row = e.target.closest("[data-day]");
+    if (row) openDay(row.dataset.day);
+  });
+
+  $("day-drinks").addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-remove]");
+    if (!btn) return;
+    var i = Number(btn.dataset.remove);
+    changeDay(openDayKey, function (entries) { entries.splice(i, 1); });
+  });
+
+  document.querySelectorAll("[data-day-ml]").forEach(function (btn) {
+    btn.addEventListener("click", function () { addToDay(Number(btn.dataset.dayMl)); });
+  });
+
+  $("day-custom-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var ml = Number($("day-custom-ml").value);
+    if (ml > 0 && ml <= 5000) {
+      addToDay(ml);
+      $("day-custom-ml").value = "";
+      $("day-custom-ml").blur();
+    } else {
+      $("day-custom-ml").focus();
+    }
+  });
 
   // ---------- tabs ----------
 

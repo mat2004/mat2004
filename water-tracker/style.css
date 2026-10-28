@@ -533,6 +533,8 @@ button {
 
 /* Each day is a circle filled with water from the bottom, by how much was drunk. */
 .cal-day {
+  border: 0;
+  padding: 0;
   aspect-ratio: 1;
   max-width: 44px;
   width: 100%;
@@ -544,6 +546,10 @@ button {
   font-weight: 600;
   color: #10233a;
   background: linear-gradient(to top, #9fd5ff var(--fill), #f2f8ff var(--fill));
+}
+
+button.cal-day:active {
+  transform: scale(0.92);
 }
 
 .cal-day.met {
@@ -567,6 +573,7 @@ button {
 }
 
 .day-row {
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -667,4 +674,71 @@ button {
 
 .tab.active {
   color: #1e7fe0;
+}
+
+/* ---- day details sheet ---- */
+.sheet-panel {
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+.day-summary {
+  margin: -8px 0 14px;
+  text-align: center;
+  font-size: 17px;
+  color: #5d7088;
+}
+
+.day-summary b {
+  color: #10233a;
+}
+
+.day-summary .check {
+  color: #138a43;
+  font-weight: 700;
+}
+
+.drinks {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0;
+  max-height: 30vh;
+  overflow-y: auto;
+}
+
+.drinks li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 4px 6px 14px;
+  border-top: 1px solid #edf2f7;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.drinks li:last-child {
+  border-bottom: 1px solid #edf2f7;
+}
+
+.drinks button {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #9aa9ba;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.drinks button:active {
+  background: #fdecea;
+  color: #c0392b;
+}
+
+.drinks .drinks-empty {
+  justify-content: center;
+  color: #7a8ca3;
+  font-weight: 400;
+  padding: 14px;
 }
