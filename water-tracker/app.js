@@ -493,6 +493,7 @@
     $("intake").hidden = name !== "intake";
     $("history").hidden = name !== "history";
     $("toast").hidden = true;
+    $("tabbar").dataset.active = name;
     document.querySelectorAll("[data-tab]").forEach(function (btn) {
       var active = btn.dataset.tab === name;
       btn.classList.toggle("active", active);
