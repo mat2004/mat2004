@@ -16,7 +16,10 @@
 <body>
   <main class="app">
     <header class="stats">
-      <button id="remind-btn" class="btn-bell" aria-label="Reminders">
+      <button id="history-btn" class="btn-corner left" aria-label="History">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <button id="remind-btn" class="btn-corner right" aria-label="Reminders">
         <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <div class="today">Today</div>
@@ -71,6 +74,37 @@
       </button>
     </footer>
   </main>
+
+  <!-- History page -->
+  <section id="history" class="page" hidden>
+    <header class="page-head">
+      <button id="history-back" class="btn-corner-static" aria-label="Back">
+        <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h1>History</h1>
+      <span class="btn-corner-static"></span>
+    </header>
+
+    <div class="summary">
+      <div class="stat"><div class="stat-value"><span id="stat-streak">0</span> 🔥</div><div class="stat-label">day streak</div></div>
+      <div class="stat"><div class="stat-value" id="stat-avg">0 L</div><div class="stat-label">daily average, last 7 days</div></div>
+      <div class="stat"><div class="stat-value" id="stat-goals">0</div><div class="stat-label" id="stat-goals-label">goals reached</div></div>
+    </div>
+
+    <div class="month-nav">
+      <button id="month-prev" aria-label="Previous month">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h2 id="month-title"></h2>
+      <button id="month-next" aria-label="Next month">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="cal-head"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+    <div id="cal" class="cal"></div>
+
+    <ul id="day-list" class="day-list"></ul>
+  </section>
 
   <!-- Add water sheet -->
   <div id="add-sheet" class="sheet" hidden>
