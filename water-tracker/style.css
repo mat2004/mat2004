@@ -18,6 +18,15 @@ textarea {
   /* Floating "liquid glass" tab bar: its distance from the bottom, and the space it takes up. */
   --tabbar-bottom: max(12px, calc(env(safe-area-inset-bottom) - 10px));
   --tabbar: calc(var(--tabbar-bottom) + 64px);
+
+  /* Flat liquid glass: see-through fill, thin light rim, faint soft shadow. No gradients or bevels. */
+  --glass-fill: rgba(255, 255, 255, 0.62);
+  --glass-fill-pressed: rgba(222, 230, 240, 0.8);
+  --glass-rim: 1px solid rgba(255, 255, 255, 0.7);
+  --glass-shadow: 0 4px 16px rgba(16, 35, 58, 0.08);
+  --glass-blur: blur(20px) saturate(180%);
+  --blue: #1e7fe0;
+  --blue-pressed: #166bc2;
 }
 
 html,
@@ -164,23 +173,12 @@ button {
 /* Clear glass: the round buttons and the bell. Same recipe as the tab bar. */
 .btn-round,
 .btn-corner {
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(236, 243, 250, 0.6));
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  backdrop-filter: blur(20px) saturate(180%);
-  box-shadow:
-    0 8px 22px rgba(16, 35, 58, 0.12),
-    0 1px 3px rgba(16, 35, 58, 0.08),
-    inset 0 1px 1px rgba(255, 255, 255, 0.95),
-    inset 0 -1px 2px rgba(16, 35, 58, 0.06);
-  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
-}
-
-.btn-corner {
-  box-shadow:
-    0 4px 12px rgba(16, 35, 58, 0.1),
-    inset 0 1px 1px rgba(255, 255, 255, 0.95),
-    inset 0 -1px 2px rgba(16, 35, 58, 0.05);
+  border: var(--glass-rim);
+  background: var(--glass-fill);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+  transition: transform 0.15s ease, background 0.15s ease;
 }
 
 .btn-round {
@@ -202,40 +200,26 @@ button {
 .btn-round:not(:disabled):active,
 .btn-corner:active {
   transform: scale(0.92);
-  background: linear-gradient(180deg, rgba(225, 233, 242, 0.85), rgba(208, 219, 231, 0.75));
-  box-shadow:
-    0 3px 10px rgba(16, 35, 58, 0.1),
-    inset 0 1px 3px rgba(16, 35, 58, 0.12);
+  background: var(--glass-fill-pressed);
 }
 
-/* Blue tinted glass: the main action. */
+/* Blue tinted glass: the main action. Flat colour, like iOS. */
 .btn-primary {
   flex: 1;
   height: 60px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 0;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(79, 168, 250, 0.95), rgba(30, 127, 224, 0.92) 55%, rgba(24, 112, 204, 0.95));
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  backdrop-filter: blur(20px) saturate(180%);
+  background: var(--blue);
   color: #ffffff;
   font-size: 20px;
-  font-weight: 700;
-  text-shadow: 0 1px 1px rgba(10, 60, 120, 0.25);
-  box-shadow:
-    0 10px 24px rgba(30, 127, 224, 0.32),
-    0 2px 4px rgba(30, 127, 224, 0.2),
-    inset 0 1px 1px rgba(255, 255, 255, 0.6),
-    inset 0 -2px 4px rgba(10, 60, 120, 0.25);
-  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(30, 127, 224, 0.22);
+  transition: transform 0.15s ease, background 0.15s ease;
 }
 
 .btn-primary:active {
   transform: scale(0.96);
-  background: linear-gradient(180deg, rgba(52, 145, 232, 0.97), rgba(22, 110, 200, 0.95) 55%, rgba(18, 96, 180, 0.97));
-  box-shadow:
-    0 4px 12px rgba(30, 127, 224, 0.28),
-    inset 0 1px 1px rgba(255, 255, 255, 0.4),
-    inset 0 -1px 3px rgba(10, 60, 120, 0.3);
+  background: var(--blue-pressed);
 }
 
 .btn-primary.small {
@@ -514,15 +498,11 @@ button {
 /* Frosted glass panel, same recipe as the tab bar and buttons. */
 .glass-card,
 .stat {
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.52));
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  backdrop-filter: blur(24px) saturate(180%);
-  box-shadow:
-    0 10px 30px rgba(16, 35, 58, 0.08),
-    0 1px 3px rgba(16, 35, 58, 0.06),
-    inset 0 1px 1px rgba(255, 255, 255, 0.95),
-    inset 0 -1px 2px rgba(16, 35, 58, 0.04);
+  border: var(--glass-rim);
+  background: var(--glass-fill);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
 }
 
 .glass-card {
@@ -575,13 +555,9 @@ button {
 .month-nav button {
   width: 40px;
   height: 40px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: var(--glass-rim);
   border-radius: 50%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(236, 243, 250, 0.7));
-  box-shadow:
-    0 4px 12px rgba(16, 35, 58, 0.1),
-    inset 0 1px 1px rgba(255, 255, 255, 0.95),
-    inset 0 -1px 2px rgba(16, 35, 58, 0.05);
+  background: rgba(30, 127, 224, 0.08);
   color: #1e7fe0;
   display: grid;
   place-items: center;
@@ -590,13 +566,12 @@ button {
 
 .month-nav button:not(:disabled):active {
   transform: scale(0.9);
-  background: linear-gradient(180deg, rgba(225, 233, 242, 0.9), rgba(208, 219, 231, 0.8));
+  background: rgba(30, 127, 224, 0.16);
 }
 
 .month-nav button:disabled {
   color: #c4d0dc;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(16, 35, 58, 0.03);
 }
 
 .cal-head,
@@ -628,11 +603,8 @@ button {
   font-size: 14px;
   font-weight: 600;
   color: #10233a;
-  background: linear-gradient(to top, rgba(110, 190, 255, 0.75) var(--fill), rgba(255, 255, 255, 0.7) var(--fill));
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.95),
-    inset 0 -1px 2px rgba(16, 35, 58, 0.06),
-    0 1px 3px rgba(16, 35, 58, 0.08);
+  /* Hard edge = the water line. */
+  background: linear-gradient(to top, rgba(110, 190, 255, 0.7) var(--fill), rgba(30, 127, 224, 0.06) var(--fill));
   transition: transform 0.15s ease, filter 0.15s ease;
 }
 
@@ -641,27 +613,18 @@ button.cal-day:active {
   filter: brightness(0.9);
 }
 
-/* Goal reached: blue tinted glass, like the Add water button. */
+/* Goal reached: flat blue, like the Add water button. */
 .cal-day.met {
-  background: linear-gradient(180deg, #5aaefb, #1e7fe0 60%, #1870cc);
+  background: var(--blue);
   color: #ffffff;
-  text-shadow: 0 1px 1px rgba(10, 60, 120, 0.25);
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.6),
-    inset 0 -2px 3px rgba(10, 60, 120, 0.25),
-    0 3px 8px rgba(30, 127, 224, 0.3);
 }
 
 .cal-day.today {
-  box-shadow:
-    0 0 0 2px #ffffff,
-    0 0 0 4px #1e7fe0,
-    inset 0 1px 1px rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--blue);
 }
 
 .cal-day.future {
   background: transparent;
-  box-shadow: none;
   color: #c4d0dc;
 }
 
@@ -734,25 +697,22 @@ button.cal-day:active {
   font-weight: 700;
 }
 
-/* Glossy glass tube that fills with water. */
 .day-bar {
-  height: 10px;
-  border-radius: 5px;
+  height: 8px;
+  border-radius: 4px;
   background: rgba(16, 35, 58, 0.06);
-  box-shadow: inset 0 1px 2px rgba(16, 35, 58, 0.1);
   overflow: hidden;
 }
 
 .day-bar i {
   display: block;
   height: 100%;
-  border-radius: 5px;
-  background: linear-gradient(180deg, #9ed6ff, #4fb3ff);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6);
+  border-radius: 4px;
+  background: #6ebeff;
 }
 
 .day-row.met .day-bar i {
-  background: linear-gradient(180deg, #5aaefb, #1e7fe0);
+  background: var(--blue);
 }
 
 .day-empty {
@@ -773,16 +733,12 @@ button.cal-day:active {
   padding: 4px;
   display: flex;
   border-radius: 999px;
-  /* Frosted, see-through glass with a bright top edge. */
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(245, 248, 252, 0.55));
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
-  backdrop-filter: blur(22px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  box-shadow:
-    0 10px 30px rgba(16, 35, 58, 0.14),
-    0 1px 3px rgba(16, 35, 58, 0.08),
-    inset 0 1px 1px rgba(255, 255, 255, 0.9),
-    inset 0 -1px 1px rgba(16, 35, 58, 0.05);
+  /* Frosted, see-through glass. */
+  background: var(--glass-fill);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: var(--glass-rim);
+  box-shadow: 0 6px 22px rgba(16, 35, 58, 0.12);
 }
 
 /* The darker pill behind the selected tab. It slides when you switch tabs. */
@@ -794,7 +750,6 @@ button.cal-day:active {
   width: calc(50% - 4px);
   border-radius: 999px;
   background: rgba(16, 35, 58, 0.08);
-  box-shadow: inset 0 1px 2px rgba(16, 35, 58, 0.08);
   transition: transform 0.45s cubic-bezier(0.3, 1.35, 0.5, 1), background-color 0.15s ease;
 }
 

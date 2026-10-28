@@ -1,6 +1,6 @@
 // Caches the app so it opens instantly and works offline.
 // Bump CACHE when you change any file so phones pick up the new version.
-var CACHE = "water-v9";
+var CACHE = "water-v10";
 var FILES = [
   "./",
   "index.html",
