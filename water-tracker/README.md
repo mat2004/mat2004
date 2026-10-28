@@ -29,6 +29,10 @@ iPhone home screen from Safari, and after that it opens full-screen like a norma
 The bell (top right) turns on reminders to drink: one every 1.5–2 hours, at random,
 only between the hours you pick. Needs iOS 16.4 or newer.
 
+There's also one **creatine** reminder every day at 19:00 ("Time for your creatine 💪 Take it
+with a glass of water."), separate from the water reminders. The time and text are at the top of
+`reminders/send.js`.
+
 A web app can't wake itself up on iPhone, so the reminders are sent by GitHub Actions
 (`.github/workflows/water-reminders.yml` running `reminders/send.js` every 10 minutes).
 The messages are in `reminders/messages.json`.
@@ -42,6 +46,7 @@ One-time setup:
    tap **Turn on reminders**, allow notifications, then tap **Copy code**.
 4. Add another secret: name `REMINDER_CODE`, value = the copied code.
 5. Test it: **Actions → Water reminders → Run workflow**. A reminder arrives right away.
+   Tick **Send the creatine reminder right now** to test that one instead.
 
 If you change your hours, do steps 3–4 again (update the `REMINDER_CODE` secret).
 If a run fails saying the phone is no longer subscribed, do the same.

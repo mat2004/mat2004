@@ -1,6 +1,7 @@
 name: Water reminders
 
-# Checks every 10 minutes whether a drink reminder is due and sends it to the phone.
+# Checks every 10 minutes whether a drink reminder (or the daily 19:00 creatine reminder)
+# is due and sends it to the phone.
 # The random 1.5–2 hour schedule lives in reminders/send.js; its state is kept on the
 # "reminder-state" branch so it survives between runs.
 on:
@@ -9,9 +10,13 @@ on:
   workflow_dispatch:
     inputs:
       test:
-        description: Send a reminder right now
+        description: Send a water reminder right now
         type: boolean
         default: true
+      creatine:
+        description: Send the creatine reminder right now
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -41,6 +46,7 @@ jobs:
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
           REMINDER_CODE: ${{ secrets.REMINDER_CODE }}
           FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.test }}
+          FORCE_CREATINE: ${{ github.event_name == 'workflow_dispatch' && inputs.creatine }}
         run: node reminders/send.js "$RUNNER_TEMP/state.json"
 
       - name: Save schedule state
