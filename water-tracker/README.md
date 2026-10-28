@@ -8,6 +8,8 @@ A very simple iPhone app for tracking how much water you drink each day.
 - The **target** button (bottom left) sets your daily goal (0.5–6 L).
 - The **undo** button (bottom right) removes the last drink if you made a mistake.
 - Starts from an empty bottle every new day.
+- Two tabs at the bottom: **Intake** (the bottle) and **History**: day streak, 7-day average,
+  a month calendar where each day fills with water, and a list of every day with how much you drank.
 - Everything is saved on the phone. No account, works offline.
 
 It's a web app: plain HTML/CSS/JavaScript with no build step. You add it to your
@@ -58,6 +60,6 @@ Then open http://localhost:8000.
 | --- | --- |
 | `index.html` | The screen: numbers, bottle, buttons, and the two pop-up sheets |
 | `style.css` | Look and layout |
-| `app.js` | Logic: adding water, goal, undo, saving, new-day reset |
+| `app.js` | Logic: adding water, goal, undo, history page, reminders, saving, new-day reset |
 | `sw.js` | Makes it work offline. Bump `CACHE` when you change files |
 | `manifest.json`, `icons/` | Home screen name and icon |

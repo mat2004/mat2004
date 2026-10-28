@@ -14,6 +14,10 @@ textarea {
   user-select: text;
 }
 
+:root {
+  --tabbar: calc(env(safe-area-inset-bottom) + 64px);
+}
+
 html,
 body {
   margin: 0;
@@ -34,7 +38,7 @@ button {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: calc(env(safe-area-inset-top) + 24px) 20px calc(env(safe-area-inset-bottom) + 20px);
+  padding: calc(env(safe-area-inset-top) + 24px) 20px calc(var(--tabbar) + 16px);
   max-width: 480px;
   margin: 0 auto;
 }
@@ -45,7 +49,11 @@ button {
   position: relative;
 }
 
-.btn-bell {
+.app[hidden] {
+  display: none;
+}
+
+.btn-corner {
   position: absolute;
   top: -8px;
   right: -6px;
@@ -58,6 +66,7 @@ button {
   display: grid;
   place-items: center;
 }
+
 
 .today {
   font-size: 15px;
@@ -407,7 +416,7 @@ button {
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom) + 96px);
+  bottom: calc(var(--tabbar) + 96px);
   transform: translateX(-50%);
   background: #10233a;
   color: #ffffff;
@@ -420,4 +429,242 @@ button {
 
 .toast[hidden] {
   display: none;
+}
+
+/* ---- history tab ---- */
+.page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--tabbar);
+  background: #ffffff;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: calc(env(safe-area-inset-top) + 20px) 20px 24px;
+}
+
+.page[hidden] {
+  display: none;
+}
+
+.page > * {
+  max-width: 440px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.page-title {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 22px;
+  text-align: center;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 26px;
+}
+
+.stat {
+  background: #f2f8ff;
+  border-radius: 16px;
+  padding: 14px 8px 12px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: #5d7088;
+}
+
+.month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.month-nav h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.month-nav button {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: #eef5fc;
+  color: #1e7fe0;
+  display: grid;
+  place-items: center;
+}
+
+.month-nav button:disabled {
+  color: #c4d0dc;
+  background: #f5f8fb;
+}
+
+.cal-head,
+.cal {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  text-align: center;
+}
+
+.cal-head {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9aa9ba;
+  margin-bottom: 6px;
+}
+
+/* Each day is a circle filled with water from the bottom, by how much was drunk. */
+.cal-day {
+  aspect-ratio: 1;
+  max-width: 44px;
+  width: 100%;
+  margin: 0 auto;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #10233a;
+  background: linear-gradient(to top, #9fd5ff var(--fill), #f2f8ff var(--fill));
+}
+
+.cal-day.met {
+  background: #1e7fe0;
+  color: #ffffff;
+}
+
+.cal-day.today {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #1e7fe0;
+}
+
+.cal-day.future {
+  background: transparent;
+  color: #c4d0dc;
+}
+
+.day-list {
+  list-style: none;
+  margin: 26px 0 0;
+  padding: 0;
+}
+
+.day-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid #edf2f7;
+}
+
+.day-date {
+  width: 40px;
+  text-align: center;
+  line-height: 1.15;
+}
+
+.day-date b {
+  display: block;
+  font-size: 20px;
+}
+
+.day-date span {
+  font-size: 12px;
+  color: #7a8ca3;
+}
+
+.day-main {
+  flex: 1;
+}
+
+.day-amount {
+  font-size: 15px;
+  color: #5d7088;
+  margin-bottom: 6px;
+}
+
+.day-amount b {
+  color: #10233a;
+  font-size: 17px;
+}
+
+.day-amount .check {
+  color: #138a43;
+  font-weight: 700;
+}
+
+.day-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: #eef5fc;
+  overflow: hidden;
+}
+
+.day-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: #4fb3ff;
+}
+
+.day-row.met .day-bar i {
+  background: #1e7fe0;
+}
+
+.day-empty {
+  padding: 18px 0;
+  text-align: center;
+  color: #7a8ca3;
+  border-top: 1px solid #edf2f7;
+}
+
+/* ---- tab bar ---- */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  height: var(--tabbar);
+  padding-bottom: env(safe-area-inset-bottom);
+  display: flex;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid #e6edf4;
+}
+
+.tab {
+  flex: 1;
+  max-width: 200px;
+  border: 0;
+  background: transparent;
+  color: #9aa9ba;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.tab.active {
+  color: #1e7fe0;
 }

@@ -31,19 +31,32 @@
     } catch (e) {}
   }
 
-  function todayKey() {
-    var d = new Date();
+  function dateKey(d) {
     var pad = function (n) { return (n < 10 ? "0" : "") + n; };
     return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
   }
 
-  // Keep the last 60 days only, so storage never grows forever.
+  function todayKey() {
+    return dateKey(new Date());
+  }
+
+  // Keep about two years of history, so storage never grows forever.
   function prune() {
     var keys = Object.keys(state.days).sort();
-    while (keys.length > 60) delete state.days[keys.shift()];
+    while (keys.length > 730) {
+      var old = keys.shift();
+      delete state.days[old];
+      delete state.dayGoals[old];
+    }
+  }
+
+  // Remember what the goal was on each day, so history stays right after the goal changes.
+  function rememberGoal() {
+    state.dayGoals[todayKey()] = state.goal;
   }
 
   var state = load();
+  state.dayGoals = state.dayGoals || {};
 
   function todayEntries() {
     return state.days[todayKey()] || [];
@@ -101,6 +114,7 @@
     if (!(ml > 0)) return;
     var key = todayKey();
     (state.days[key] = state.days[key] || []).push(ml);
+    rememberGoal();
     prune();
     save();
     render();
@@ -200,6 +214,7 @@
 
   $("goal-save").addEventListener("click", function () {
     state.goal = draftGoal;
+    if (todayEntries().length) rememberGoal();
     save();
     render();
     closeSheets();
@@ -289,6 +304,135 @@
     });
   });
 
+  // ---------- history page ----------
+
+  var MONTHS = ["January", "February", "March", "April", "May", "June", "July",
+    "August", "September", "October", "November", "December"];
+  var WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  function dayTotalMl(key) {
+    return (state.days[key] || []).reduce(function (sum, ml) { return sum + ml; }, 0);
+  }
+
+  function dayGoalMl(key) {
+    return (state.dayGoals[key] || state.goal) * 1000;
+  }
+
+  function goalMet(key) {
+    var total = dayTotalMl(key);
+    return total > 0 && total >= dayGoalMl(key);
+  }
+
+  // Days in a row the goal was reached. Today only counts once it's reached,
+  // so the streak doesn't drop to 0 every morning.
+  function streak() {
+    var d = new Date();
+    if (!goalMet(dateKey(d))) d.setDate(d.getDate() - 1);
+    var n = 0;
+    while (goalMet(dateKey(d))) {
+      n++;
+      d.setDate(d.getDate() - 1);
+    }
+    return n;
+  }
+
+  // Average over the last 7 days that have any water logged.
+  function weekAverageMl() {
+    var d = new Date();
+    var sum = 0;
+    var count = 0;
+    for (var i = 0; i < 7; i++) {
+      var total = dayTotalMl(dateKey(d));
+      if (total > 0) {
+        sum += total;
+        count++;
+      }
+      d.setDate(d.getDate() - 1);
+    }
+    return count ? sum / count : 0;
+  }
+
+  var shownMonth = new Date();
+  shownMonth.setDate(1);
+
+  function renderHistory() {
+    var year = shownMonth.getFullYear();
+    var month = shownMonth.getMonth();
+    var today = todayKey();
+    var now = new Date();
+    var daysInMonth = new Date(year, month + 1, 0).getDate();
+    var isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
+
+    $("stat-streak").textContent = streak();
+    $("stat-avg").textContent = litres(weekAverageMl()) + " L";
+    $("month-title").textContent = MONTHS[month] + " " + year;
+    $("month-next").disabled = isCurrentMonth;
+
+    // Calendar: each day is a small circle that fills with water.
+    var html = "";
+    var blanks = (new Date(year, month, 1).getDay() + 6) % 7; // weeks start on Monday
+    for (var b = 0; b < blanks; b++) html += "<span></span>";
+    var goalsMet = 0;
+    var listHtml = "";
+    for (var day = 1; day <= daysInMonth; day++) {
+      var key = dateKey(new Date(year, month, day));
+      var total = dayTotalMl(key);
+      var goal = dayGoalMl(key);
+      var pct = Math.min(Math.round((total / goal) * 100), 100);
+      var met = goalMet(key);
+      if (met) goalsMet++;
+      var cls = "cal-day" + (met ? " met" : "") + (key === today ? " today" : "") + (key > today ? " future" : "");
+      html += '<span class="' + cls + '" style="--fill:' + pct + '%">' + day + "</span>";
+
+      if (total > 0) {
+        var weekday = WEEKDAYS[new Date(year, month, day).getDay()];
+        listHtml = '<li class="day-row' + (met ? " met" : "") + '">' +
+          '<div class="day-date"><b>' + day + "</b><span>" + weekday + "</span></div>" +
+          '<div class="day-main">' +
+            '<div class="day-amount"><b>' + litres(total) + " L</b> of " + litres(goal) + " L" + (met ? ' <span class="check">✓</span>' : "") + "</div>" +
+            '<div class="day-bar"><i style="width:' + pct + '%"></i></div>' +
+          "</div></li>" + listHtml; // newest first
+      }
+    }
+    $("cal").innerHTML = html;
+    $("stat-goals").textContent = goalsMet;
+    $("stat-goals-label").textContent = "goals reached in " + MONTHS[month].slice(0, 3);
+    $("day-list").innerHTML = listHtml || '<li class="day-empty">No water logged in ' + MONTHS[month] + ".</li>";
+  }
+
+  // ---------- tabs ----------
+
+  function showTab(name) {
+    $("intake").hidden = name !== "intake";
+    $("history").hidden = name !== "history";
+    $("toast").hidden = true;
+    document.querySelectorAll("[data-tab]").forEach(function (btn) {
+      var active = btn.dataset.tab === name;
+      btn.classList.toggle("active", active);
+      btn.setAttribute("aria-selected", String(active));
+    });
+    if (name === "history") {
+      shownMonth = new Date();
+      shownMonth.setDate(1);
+      renderHistory();
+      $("history").scrollTop = 0;
+    }
+  }
+
+  document.querySelectorAll("[data-tab]").forEach(function (btn) {
+    btn.addEventListener("click", function () { showTab(btn.dataset.tab); });
+  });
+
+  $("month-prev").addEventListener("click", function () {
+    shownMonth.setMonth(shownMonth.getMonth() - 1);
+    renderHistory();
+  });
+
+  $("month-next").addEventListener("click", function () {
+    shownMonth.setMonth(shownMonth.getMonth() + 1);
+    renderHistory();
+  });
+
   // ---------- new day ----------
 
   // When the app comes back from the background on a new day, show the fresh (empty) bottle.
@@ -297,6 +441,7 @@
     if (todayKey() !== shownDay) {
       shownDay = todayKey();
       render();
+      if (!$("history").hidden) renderHistory();
     }
   }
   document.addEventListener("visibilitychange", function () {
