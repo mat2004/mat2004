@@ -83,6 +83,7 @@
       <div class="stat"><div class="stat-value" id="stat-goals">0</div><div class="stat-label" id="stat-goals-label">goals reached</div></div>
     </div>
 
+    <div class="glass-card cal-card">
     <div class="month-nav">
       <button id="month-prev" aria-label="Previous month">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -94,11 +95,33 @@
     </div>
     <div class="cal-head"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
     <div id="cal" class="cal"></div>
+    </div>
 
-    <ul id="day-list" class="day-list"></ul>
+    <!-- Stats for the day tapped in the calendar -->
+    <div id="day-card" class="glass-card day-card">
+      <div class="day-card-head">
+        <div>
+          <h3 id="sel-title">Today</h3>
+          <div id="sel-date" class="sel-date"></div>
+        </div>
+        <button id="sel-edit" class="link-btn">Edit</button>
+      </div>
+      <div class="day-stats">
+        <div><b id="sel-total">0 L</b><span id="sel-goal">of 2.5 L</span></div>
+        <div><b id="sel-count">0</b><span id="sel-count-label">drinks</span></div>
+        <div><b id="sel-avg">–</b><span>per drink</span></div>
+      </div>
+      <div id="sel-chart-wrap">
+        <p id="sel-tip" class="chart-tip"></p>
+        <svg id="sel-chart" class="day-chart" viewBox="0 0 340 170" role="img" aria-label="Water through the day"></svg>
+        <p id="sel-note" class="chart-note" hidden></p>
+      </div>
+      <p id="sel-empty" class="chart-empty" hidden></p>
+    </div>
   </section>
 
-  <nav class="tabbar" role="tablist">
+  <nav id="tabbar" class="tabbar" role="tablist" data-active="intake">
+    <span class="tab-pill" aria-hidden="true"></span>
     <button class="tab active" data-tab="intake" role="tab" aria-selected="true">
       <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 3.5c3.2 4 6 7.4 6 10.6a6 6 0 0 1-12 0c0-3.2 2.8-6.6 6-10.6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
       <span>Intake</span>
@@ -169,6 +192,33 @@
         <p class="hint">Last step: copy this code and save it on GitHub as the secret <b>REMINDER_CODE</b>. If you change the times later, do this again.</p>
         <textarea id="remind-code" rows="3" readonly></textarea>
         <button id="remind-copy" class="btn-primary wide">Copy code</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day details sheet (tap a day in History) -->
+  <div id="day-sheet" class="sheet" hidden>
+    <div class="sheet-backdrop" data-close></div>
+    <div class="sheet-panel" role="dialog" aria-labelledby="day-title">
+      <div class="grabber"></div>
+      <h2 id="day-title"></h2>
+      <p id="day-summary" class="day-summary"></p>
+      <ul id="day-drinks" class="drinks"></ul>
+      <div id="day-add">
+      <p class="hint">Forgot to log something? Add it here:</p>
+      <div class="quick">
+        <button data-day-ml="100">100 ml</button>
+        <button data-day-ml="200">200 ml</button>
+        <button data-day-ml="250">250 ml</button>
+        <button data-day-ml="330">330 ml</button>
+        <button data-day-ml="500">500 ml</button>
+        <button data-day-ml="750">750 ml</button>
+      </div>
+      <form id="day-custom-form" class="custom">
+        <input id="day-custom-ml" type="number" inputmode="numeric" min="1" max="5000" placeholder="Other amount">
+        <span class="suffix">ml</span>
+        <button type="submit" class="btn-primary small">Add</button>
+      </form>
       </div>
     </div>
   </div>

@@ -9,7 +9,8 @@ A very simple iPhone app for tracking how much water you drink each day.
 - The **undo** button (bottom right) removes the last drink if you made a mistake.
 - Starts from an empty bottle every new day.
 - Two tabs at the bottom: **Intake** (the bottle) and **History**: day streak, 7-day average,
-  a month calendar where each day fills with water, and a list of every day with how much you drank.
+  and a month calendar where each day fills with water. Tap a day to see how much you drank,
+  how many drinks, and a line chart of your water through the day. **Edit** there fixes mistakes or adds forgotten water.
 - Everything is saved on the phone. No account, works offline.
 
 It's a web app: plain HTML/CSS/JavaScript with no build step. You add it to your

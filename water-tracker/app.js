@@ -58,12 +58,26 @@
   var state = load();
   state.dayGoals = state.dayGoals || {};
 
+  // A drink is { ml, t } where t is when it was logged. Drinks logged before times were
+  // saved (and ones added later to a past day) are plain numbers or have no t.
+  function mlOf(drink) {
+    return typeof drink === "number" ? drink : drink.ml;
+  }
+
+  function timeOf(drink) {
+    return typeof drink === "number" ? null : drink.t || null;
+  }
+
+  function sumMl(drinks) {
+    return drinks.reduce(function (sum, drink) { return sum + mlOf(drink); }, 0);
+  }
+
   function todayEntries() {
     return state.days[todayKey()] || [];
   }
 
   function todayTotalMl() {
-    return todayEntries().reduce(function (sum, ml) { return sum + ml; }, 0);
+    return sumMl(todayEntries());
   }
 
   // ---------- formatting ----------
@@ -113,7 +127,7 @@
     ml = Math.round(ml);
     if (!(ml > 0)) return;
     var key = todayKey();
-    (state.days[key] = state.days[key] || []).push(ml);
+    (state.days[key] = state.days[key] || []).push({ ml: ml, t: Date.now() });
     rememberGoal();
     prune();
     save();
@@ -124,7 +138,7 @@
   function undo() {
     var entries = todayEntries();
     if (!entries.length) return;
-    var ml = entries.pop();
+    var ml = mlOf(entries.pop());
     save();
     render();
     toast("Removed " + ml + " ml");
@@ -149,6 +163,7 @@
     $("add-sheet").hidden = true;
     $("goal-sheet").hidden = true;
     $("remind-sheet").hidden = true;
+    $("day-sheet").hidden = true;
     document.activeElement && document.activeElement.blur();
   }
 
@@ -308,10 +323,9 @@
 
   var MONTHS = ["January", "February", "March", "April", "May", "June", "July",
     "August", "September", "October", "November", "December"];
-  var WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   function dayTotalMl(key) {
-    return (state.days[key] || []).reduce(function (sum, ml) { return sum + ml; }, 0);
+    return sumMl(state.days[key] || []);
   }
 
   function dayGoalMl(key) {
@@ -354,6 +368,7 @@
 
   var shownMonth = new Date();
   shownMonth.setDate(1);
+  var selectedDay = todayKey();
 
   function renderHistory() {
     var year = shownMonth.getFullYear();
@@ -368,37 +383,269 @@
     $("month-title").textContent = MONTHS[month] + " " + year;
     $("month-next").disabled = isCurrentMonth;
 
-    // Calendar: each day is a small circle that fills with water.
+    // Calendar: each day is a small circle that fills with water. Tap one to see its stats.
     var html = "";
     var blanks = (new Date(year, month, 1).getDay() + 6) % 7; // weeks start on Monday
     for (var b = 0; b < blanks; b++) html += "<span></span>";
     var goalsMet = 0;
-    var listHtml = "";
     for (var day = 1; day <= daysInMonth; day++) {
       var key = dateKey(new Date(year, month, day));
-      var total = dayTotalMl(key);
-      var goal = dayGoalMl(key);
-      var pct = Math.min(Math.round((total / goal) * 100), 100);
+      var pct = Math.min(Math.round((dayTotalMl(key) / dayGoalMl(key)) * 100), 100);
       var met = goalMet(key);
       if (met) goalsMet++;
-      var cls = "cal-day" + (met ? " met" : "") + (key === today ? " today" : "") + (key > today ? " future" : "");
-      html += '<span class="' + cls + '" style="--fill:' + pct + '%">' + day + "</span>";
-
-      if (total > 0) {
-        var weekday = WEEKDAYS[new Date(year, month, day).getDay()];
-        listHtml = '<li class="day-row' + (met ? " met" : "") + '">' +
-          '<div class="day-date"><b>' + day + "</b><span>" + weekday + "</span></div>" +
-          '<div class="day-main">' +
-            '<div class="day-amount"><b>' + litres(total) + " L</b> of " + litres(goal) + " L" + (met ? ' <span class="check">✓</span>' : "") + "</div>" +
-            '<div class="day-bar"><i style="width:' + pct + '%"></i></div>' +
-          "</div></li>" + listHtml; // newest first
-      }
+      var cls = "cal-day" + (met ? " met" : "") + (key === today ? " today" : "") +
+        (key > today ? " future" : "") + (key === selectedDay ? " selected" : "");
+      html += '<button class="' + cls + '" data-day="' + key + '" style="--fill:' + pct + '%">' + day + "</button>";
     }
     $("cal").innerHTML = html;
     $("stat-goals").textContent = goalsMet;
     $("stat-goals-label").textContent = "goals reached in " + MONTHS[month].slice(0, 3);
-    $("day-list").innerHTML = listHtml || '<li class="day-empty">No water logged in ' + MONTHS[month] + ".</li>";
+    renderDayStats();
   }
+
+  function keyToDate(key) {
+    var p = key.split("-");
+    return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  }
+
+  function longDate(key) {
+    return keyToDate(key).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+  }
+
+  function clock(t) {
+    return new Date(t).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function hourLabel(h) {
+    return (h < 10 ? "0" : "") + h + ":00";
+  }
+
+  // ---------- selected day: stats + line chart of water through the day ----------
+
+  var CHART_W = 340;
+  var CHART_H = 170;
+  var PLOT_LEFT = 34; // room for the y labels
+  var PLOT_RIGHT = 6;
+  var PLOT_TOP = 12;
+  var PLOT_BOTTOM = 22; // room for the x labels
+  var MINUTES_IN_DAY = 24 * 60;
+  var chartDrinks = []; // the selected day's drinks that have a time: { min, ml, total }
+  var chartGoal = 0;
+  var chartEndMin = MINUTES_IN_DAY;
+
+  function renderDayStats() {
+    var key = selectedDay;
+    var today = todayKey();
+    var y = new Date();
+    y.setDate(y.getDate() - 1);
+    var drinks = state.days[key] || [];
+    var total = sumMl(drinks);
+    var future = key > today;
+
+    $("sel-title").textContent = key === today ? "Today" : key === dateKey(y) ? "Yesterday" : longDate(key);
+    $("sel-date").textContent = key === today || key === dateKey(y) ? longDate(key) : "";
+    $("sel-edit").hidden = future;
+    $("sel-total").textContent = litres(total) + " L";
+    $("sel-goal").textContent = "of " + litres(dayGoalMl(key)) + " L" + (goalMet(key) ? " ✓" : "");
+    $("sel-goal").classList.toggle("met", goalMet(key));
+    $("sel-count").textContent = drinks.length;
+    $("sel-count-label").textContent = drinks.length === 1 ? "drink" : "drinks";
+    $("sel-avg").textContent = drinks.length ? Math.round(total / drinks.length) + " ml" : "–";
+
+    // Timed drinks in order, each with the running total after it.
+    var dayStart = keyToDate(key).getTime();
+    var untimedMl = 0;
+    var untimedCount = 0;
+    chartDrinks = [];
+    drinks.forEach(function (drink) {
+      var t = timeOf(drink);
+      if (t) {
+        chartDrinks.push({ min: Math.min(MINUTES_IN_DAY, Math.max(0, (t - dayStart) / 60000)), ml: mlOf(drink), t: t });
+      } else {
+        untimedMl += mlOf(drink);
+        untimedCount++;
+      }
+    });
+    chartDrinks.sort(function (a, b) { return a.min - b.min; });
+    var running = 0;
+    chartDrinks.forEach(function (d) {
+      running += d.ml;
+      d.total = running;
+    });
+    chartGoal = dayGoalMl(key);
+    // Today the line stops at the current time; other days run to midnight.
+    chartEndMin = key === today ? Math.max((Date.now() - dayStart) / 60000, chartDrinks.length ? chartDrinks[chartDrinks.length - 1].min : 0) : MINUTES_IN_DAY;
+
+    var message = "";
+    if (future) message = "This day hasn't come yet.";
+    else if (!drinks.length) message = "No water logged this day.";
+    else if (!chartDrinks.length) message = "This day has no drink times saved, so there's no chart for it.";
+    $("sel-chart-wrap").hidden = !!message;
+    $("sel-empty").textContent = message;
+    $("sel-empty").hidden = !message;
+    $("sel-note").hidden = !(chartDrinks.length && untimedCount);
+    $("sel-note").textContent = untimedCount
+      ? "+ " + untimedMl + " ml from " + untimedCount + (untimedCount === 1 ? " drink" : " drinks") + " without a time, not shown in the chart."
+      : "";
+    if (!message) renderChart(null);
+  }
+
+  function renderChart(active) {
+    var plotW = CHART_W - PLOT_LEFT - PLOT_RIGHT;
+    var plotH = CHART_H - PLOT_TOP - PLOT_BOTTOM;
+    var baseY = PLOT_TOP + plotH;
+    var last = chartDrinks[chartDrinks.length - 1];
+    // The y axis always reaches the goal, in half-litre steps.
+    var max = Math.ceil(Math.max(chartGoal, last.total) / 500) * 500;
+    var xOf = function (min) { return PLOT_LEFT + (min / MINUTES_IN_DAY) * plotW; };
+    var yOf = function (ml) { return baseY - (ml / max) * plotH; };
+    var f = function (n) { return Math.round(n * 10) / 10; };
+    var svg = "";
+
+    // Recessive grid with litre labels, and hour labels along the bottom.
+    var stepMl = max > 3000 ? 1000 : 500;
+    for (var v = 0; v <= max; v += stepMl) {
+      svg += '<line class="grid' + (v === 0 ? " base" : "") + '" x1="' + PLOT_LEFT + '" x2="' + (CHART_W - PLOT_RIGHT) + '" y1="' + f(yOf(v)) + '" y2="' + f(yOf(v)) + '"/>';
+      svg += '<text class="axis" x="' + (PLOT_LEFT - 6) + '" y="' + f(yOf(v) + 3.5) + '" text-anchor="end">' + v / 1000 + " L</text>";
+    }
+    [0, 6, 12, 18, 24].forEach(function (h) {
+      var anchor = h === 0 ? "start" : h === 24 ? "end" : "middle";
+      svg += '<text class="axis" x="' + f(xOf(h * 60)) + '" y="' + (CHART_H - 6) + '" text-anchor="' + anchor + '">' + hourLabel(h) + "</text>";
+    });
+
+    // Dashed goal line, labelled in text colour.
+    var goalY = f(yOf(chartGoal));
+    svg += '<line class="goal-line" x1="' + PLOT_LEFT + '" x2="' + (CHART_W - PLOT_RIGHT) + '" y1="' + goalY + '" y2="' + goalY + '"/>';
+    svg += '<text class="goal-label" x="' + (PLOT_LEFT + 4) + '" y="' + (goalY - 5) + '">Goal ' + litres(chartGoal) + " L</text>";
+
+    // The line: flat between drinks, stepping up at each one.
+    var line = "M" + f(xOf(0)) + " " + f(baseY);
+    chartDrinks.forEach(function (d) {
+      line += " H" + f(xOf(d.min)) + " V" + f(yOf(d.total));
+    });
+    line += " H" + f(xOf(chartEndMin));
+    svg += '<path class="area" d="' + line + " V" + f(baseY) + ' Z"/>';
+    svg += '<path class="line" d="' + line + '"/>';
+
+    // Crosshair for the tapped drink.
+    if (active !== null) {
+      var ax = f(xOf(chartDrinks[active].min));
+      svg += '<line class="cross" x1="' + ax + '" x2="' + ax + '" y1="' + PLOT_TOP + '" y2="' + baseY + '"/>';
+    }
+
+    // A dot for each drink, with a white ring so close dots stay apart.
+    chartDrinks.forEach(function (d, i) {
+      svg += '<circle class="dot' + (i === active ? " active" : "") + '" cx="' + f(xOf(d.min)) + '" cy="' + f(yOf(d.total)) + '" r="' + (i === active ? 6 : 4) + '"/>';
+    });
+    $("sel-chart").innerHTML = svg;
+
+    var tip = $("sel-tip");
+    if (active !== null) {
+      var d = chartDrinks[active];
+      tip.innerHTML = "<b>" + clock(d.t) + "</b> · +" + d.ml + " ml · " + litres(d.total) + " L so far";
+    } else {
+      tip.textContent = "Water through the day. Tap the chart to see each drink.";
+    }
+  }
+
+  // Tapping anywhere on the chart picks the nearest drink.
+  $("sel-chart").addEventListener("click", function (e) {
+    if (!chartDrinks.length) return;
+    var box = $("sel-chart").getBoundingClientRect();
+    var x = ((e.clientX - box.left) / box.width) * CHART_W;
+    var min = ((x - PLOT_LEFT) / (CHART_W - PLOT_LEFT - PLOT_RIGHT)) * MINUTES_IN_DAY;
+    var best = 0;
+    chartDrinks.forEach(function (d, i) {
+      if (Math.abs(d.min - min) < Math.abs(chartDrinks[best].min - min)) best = i;
+    });
+    renderChart(best);
+  });
+
+  $("cal").addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-day]");
+    if (!btn) return;
+    selectedDay = btn.dataset.day;
+    renderHistory();
+    $("day-card").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  });
+
+  $("sel-edit").addEventListener("click", function () {
+    openDay(selectedDay);
+  });
+
+  // ---------- edit a day (sheet) ----------
+  // Lets you add forgotten water or remove a mistake.
+  var openDayKey = null;
+
+  function renderDaySheet() {
+    var key = openDayKey;
+    var entries = state.days[key] || [];
+    var total = dayTotalMl(key);
+    $("day-title").textContent = longDate(key);
+    $("day-summary").innerHTML = "<b>" + litres(total) + " L</b> of " + litres(dayGoalMl(key)) + " L" +
+      (goalMet(key) ? ' <span class="check">✓</span>' : "");
+    $("day-drinks").innerHTML = entries.length
+      ? entries.map(function (drink, i) {
+          var ml = mlOf(drink);
+          var t = timeOf(drink);
+          return '<li><span>' + (t ? '<time>' + clock(t) + "</time>" : "") + ml + ' ml</span><button data-remove="' + i + '" aria-label="Remove ' + ml + ' ml">×</button></li>';
+        }).join("")
+      : '<li class="drinks-empty">No water logged this day.</li>';
+  }
+
+  function openDay(key) {
+    openDayKey = key;
+    $("day-custom-ml").value = "";
+    renderDaySheet();
+    openSheet("day-sheet");
+  }
+
+  function changeDay(key, change) {
+    var entries = state.days[key] || [];
+    change(entries);
+    if (entries.length) {
+      state.days[key] = entries;
+      if (!state.dayGoals[key]) state.dayGoals[key] = state.goal;
+    } else {
+      delete state.days[key];
+    }
+    prune();
+    save();
+    render();
+    renderHistory();
+    renderDaySheet();
+  }
+
+  // Water added to today gets the current time; water added to a past day has no time.
+  function addToDay(ml) {
+    ml = Math.round(ml);
+    if (!(ml > 0)) return;
+    var drink = openDayKey === todayKey() ? { ml: ml, t: Date.now() } : { ml: ml };
+    changeDay(openDayKey, function (entries) { entries.push(drink); });
+  }
+
+  $("day-drinks").addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-remove]");
+    if (!btn) return;
+    var i = Number(btn.dataset.remove);
+    changeDay(openDayKey, function (entries) { entries.splice(i, 1); });
+  });
+
+  document.querySelectorAll("[data-day-ml]").forEach(function (btn) {
+    btn.addEventListener("click", function () { addToDay(Number(btn.dataset.dayMl)); });
+  });
+
+  $("day-custom-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var ml = Number($("day-custom-ml").value);
+    if (ml > 0 && ml <= 5000) {
+      addToDay(ml);
+      $("day-custom-ml").value = "";
+      $("day-custom-ml").blur();
+    } else {
+      $("day-custom-ml").focus();
+    }
+  });
 
   // ---------- tabs ----------
 
@@ -406,6 +653,7 @@
     $("intake").hidden = name !== "intake";
     $("history").hidden = name !== "history";
     $("toast").hidden = true;
+    $("tabbar").dataset.active = name;
     document.querySelectorAll("[data-tab]").forEach(function (btn) {
       var active = btn.dataset.tab === name;
       btn.classList.toggle("active", active);
@@ -414,6 +662,7 @@
     if (name === "history") {
       shownMonth = new Date();
       shownMonth.setDate(1);
+      selectedDay = todayKey();
       renderHistory();
       $("history").scrollTop = 0;
     }
