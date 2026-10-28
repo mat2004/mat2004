@@ -6,6 +6,9 @@
   var MAX_GOAL = 6;
   var GOAL_STEP = 0.25;
 
+  // Public half of the key pair used to send reminders. Must match reminders/send.js.
+  var VAPID_PUBLIC_KEY = "BD7PeS3r7QaKA6pfj01DFfQEQRFFDBRz9ytluVbKRkr_csL06DvnMFe9Lki76yictDFhxYGHS8GCed_quWA4sQw";
+
   // Bottle geometry, in SVG units (see viewBox in index.html).
   var WATER_BOTTOM = 408;
   var WATER_TOP = 108;
@@ -131,6 +134,7 @@
   function closeSheets() {
     $("add-sheet").hidden = true;
     $("goal-sheet").hidden = true;
+    $("remind-sheet").hidden = true;
     document.activeElement && document.activeElement.blur();
   }
 
@@ -200,6 +204,89 @@
     render();
     closeSheets();
     toast("Goal set to " + draftGoal + " L");
+  });
+
+  // Reminders
+  // The app only produces a "reminder code" (where to send notifications + your hours).
+  // GitHub Actions uses it to send the actual reminders, see reminders/send.js.
+
+  function remindError(text) {
+    $("remind-error").textContent = text;
+    $("remind-error").hidden = !text;
+  }
+
+  function base64UrlToBytes(s) {
+    var b64 = (s + "===".slice((s.length + 3) % 4)).replace(/-/g, "+").replace(/_/g, "/");
+    var raw = atob(b64);
+    var bytes = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    return bytes;
+  }
+
+  $("remind-btn").addEventListener("click", function () {
+    var r = state.remind || {};
+    $("remind-from").value = r.from || "08:00";
+    $("remind-to").value = r.to || "22:00";
+    $("remind-code-box").hidden = true;
+    remindError("");
+    openSheet("remind-sheet");
+  });
+
+  $("remind-on").addEventListener("click", function () {
+    remindError("");
+    var from = $("remind-from").value || "08:00";
+    var to = $("remind-to").value || "22:00";
+
+    if (!("Notification" in window) || !("PushManager" in window) || !("serviceWorker" in navigator)) {
+      remindError(navigator.standalone === false
+        ? "Open Water from its home screen icon (not from Safari) to turn on reminders."
+        : "Reminders need iOS 16.4 or newer.");
+      return;
+    }
+
+    // Must be the first thing after the tap, or iOS won't show the permission prompt.
+    Notification.requestPermission()
+      .then(function (permission) {
+        if (permission !== "granted") {
+          var denied = new Error("Notifications are turned off. Turn them on in iPhone Settings → Notifications → Water, then try again.");
+          denied.friendly = true;
+          throw denied;
+        }
+        return navigator.serviceWorker.ready;
+      })
+      .then(function (reg) {
+        return reg.pushManager.getSubscription().then(function (sub) {
+          return sub || reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: base64UrlToBytes(VAPID_PUBLIC_KEY)
+          });
+        });
+      })
+      .then(function (sub) {
+        state.remind = { from: from, to: to };
+        save();
+        $("remind-code").value = JSON.stringify({
+          s: sub.toJSON(),
+          tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          from: from,
+          to: to
+        });
+        $("remind-code-box").hidden = false;
+      })
+      .catch(function (err) {
+        remindError(err && err.friendly ? err.message : "Couldn't turn on reminders, please try again." + (err && err.message ? " (" + err.message + ")" : ""));
+      });
+  });
+
+  $("remind-copy").addEventListener("click", function () {
+    var code = $("remind-code").value;
+    var copied = navigator.clipboard ? navigator.clipboard.writeText(code) : Promise.reject();
+    copied.then(function () {
+      toast("Code copied");
+    }, function () {
+      $("remind-code").select();
+      toast("Select the code and copy it");
+    });
   });
 
   // ---------- new day ----------

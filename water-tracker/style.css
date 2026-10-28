@@ -8,7 +8,8 @@
   -webkit-touch-callout: none;
 }
 
-input {
+input,
+textarea {
   -webkit-user-select: text;
   user-select: text;
 }
@@ -41,6 +42,21 @@ button {
 /* ---- stats ---- */
 .stats {
   text-align: center;
+  position: relative;
+}
+
+.btn-bell {
+  position: absolute;
+  top: -8px;
+  right: -6px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #7a8ca3;
+  display: grid;
+  place-items: center;
 }
 
 .today {
@@ -319,8 +335,72 @@ button {
   color: #ffffff;
 }
 
-#goal-save {
+#goal-save,
+.btn-primary.wide {
   width: 100%;
+  flex: none;
+}
+
+.hint {
+  margin: 0 0 14px;
+  color: #5d7088;
+  font-size: 15px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.hours {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.hours label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #7a8ca3;
+}
+
+.hours input {
+  height: 52px;
+  border: 2px solid #dbe6f1;
+  border-radius: 14px;
+  padding: 0 12px;
+  font-size: 18px;
+  font-family: inherit;
+  color: #10233a;
+  background: #ffffff;
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.error {
+  margin: 14px 0 0;
+  color: #c0392b;
+  font-size: 15px;
+  text-align: center;
+}
+
+.code-box {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid #e6edf4;
+}
+
+.code-box textarea {
+  width: 100%;
+  border: 2px solid #dbe6f1;
+  border-radius: 14px;
+  padding: 10px 12px;
+  font: 12px/1.4 ui-monospace, Menlo, monospace;
+  color: #5d7088;
+  resize: none;
+  margin-bottom: 12px;
 }
 
 /* ---- toast ---- */

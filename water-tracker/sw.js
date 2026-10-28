@@ -1,6 +1,6 @@
 // Caches the app so it opens instantly and works offline.
 // Bump CACHE when you change any file so phones pick up the new version.
-var CACHE = "water-v2";
+var CACHE = "water-v3";
 var FILES = [
   "./",
   "index.html",
@@ -31,6 +31,26 @@ self.addEventListener("fetch", function (e) {
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then(function (hit) {
       return hit || fetch(e.request);
+    })
+  );
+});
+
+// Reminders sent by reminders/send.js.
+self.addEventListener("push", function (e) {
+  var data = {};
+  try { data = e.data.json(); } catch (err) {}
+  e.waitUntil(self.registration.showNotification(data.title || "Water", {
+    body: data.body || "Time for a glass of water 💧",
+    icon: "icons/apple-touch-icon.png",
+    tag: "water-reminder"
+  }));
+});
+
+self.addEventListener("notificationclick", function (e) {
+  e.notification.close();
+  e.waitUntil(
+    self.clients.matchAll({ type: "window" }).then(function (list) {
+      return list.length ? list[0].focus() : self.clients.openWindow("./");
     })
   );
 });

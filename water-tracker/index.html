@@ -16,6 +16,9 @@
 <body>
   <main class="app">
     <header class="stats">
+      <button id="remind-btn" class="btn-bell" aria-label="Reminders">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
       <div class="today">Today</div>
       <div class="amount"><span id="drank">0</span><span class="unit"> L</span></div>
       <div class="goal-line">of <span id="goal">2.5</span> L &middot; <span id="status">2.5 L to go</span></div>
@@ -109,6 +112,27 @@
         <button data-goal="3">3 L</button>
       </div>
       <button id="goal-save" class="btn-primary">Save</button>
+    </div>
+  </div>
+
+  <!-- Reminders sheet -->
+  <div id="remind-sheet" class="sheet" hidden>
+    <div class="sheet-backdrop" data-close></div>
+    <div class="sheet-panel" role="dialog" aria-labelledby="remind-title">
+      <div class="grabber"></div>
+      <h2 id="remind-title">Reminders</h2>
+      <p class="hint">A reminder to drink every 1.5–2 hours, only between these times:</p>
+      <div class="hours">
+        <label>From<input id="remind-from" type="time" value="08:00"></label>
+        <label>Until<input id="remind-to" type="time" value="22:00"></label>
+      </div>
+      <button id="remind-on" class="btn-primary wide">Turn on reminders</button>
+      <p id="remind-error" class="error" hidden></p>
+      <div id="remind-code-box" class="code-box" hidden>
+        <p class="hint">Last step: copy this code and save it on GitHub as the secret <b>REMINDER_CODE</b>. If you change the times later, do this again.</p>
+        <textarea id="remind-code" rows="3" readonly></textarea>
+        <button id="remind-copy" class="btn-primary wide">Copy code</button>
+      </div>
     </div>
   </div>
 
