@@ -482,7 +482,12 @@ button {
   left: 0;
   right: 0;
   bottom: 0;
-  background: #ffffff;
+  /* A very soft blue wash, so the glass panels have something to show through. */
+  background:
+    radial-gradient(circle at 12% 8%, rgba(79, 179, 255, 0.22), transparent 42%),
+    radial-gradient(circle at 92% 38%, rgba(30, 127, 224, 0.14), transparent 46%),
+    radial-gradient(circle at 20% 88%, rgba(143, 208, 255, 0.24), transparent 50%),
+    #f8fbff;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   /* The list scrolls behind the glass tab bar. */
@@ -506,16 +511,33 @@ button {
   text-align: center;
 }
 
+/* Frosted glass panel, same recipe as the tab bar and buttons. */
+.glass-card,
+.stat {
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.52));
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  box-shadow:
+    0 10px 30px rgba(16, 35, 58, 0.08),
+    0 1px 3px rgba(16, 35, 58, 0.06),
+    inset 0 1px 1px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 2px rgba(16, 35, 58, 0.04);
+}
+
+.glass-card {
+  border-radius: 26px;
+}
+
 .summary {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  margin-bottom: 26px;
+  margin-bottom: 16px;
 }
 
 .stat {
-  background: #f2f8ff;
-  border-radius: 16px;
+  border-radius: 22px;
   padding: 14px 8px 12px;
   text-align: center;
 }
@@ -533,11 +555,15 @@ button {
   color: #5d7088;
 }
 
+.cal-card {
+  padding: 14px 12px 16px;
+}
+
 .month-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .month-nav h2 {
@@ -545,20 +571,32 @@ button {
   font-size: 18px;
 }
 
+/* Small clear glass circles, like the bell. */
 .month-nav button {
   width: 40px;
   height: 40px;
-  border: 0;
+  border: 1px solid rgba(255, 255, 255, 0.85);
   border-radius: 50%;
-  background: #eef5fc;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(236, 243, 250, 0.7));
+  box-shadow:
+    0 4px 12px rgba(16, 35, 58, 0.1),
+    inset 0 1px 1px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 2px rgba(16, 35, 58, 0.05);
   color: #1e7fe0;
   display: grid;
   place-items: center;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.month-nav button:not(:disabled):active {
+  transform: scale(0.9);
+  background: linear-gradient(180deg, rgba(225, 233, 242, 0.9), rgba(208, 219, 231, 0.8));
 }
 
 .month-nav button:disabled {
   color: #c4d0dc;
-  background: #f5f8fb;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.45);
 }
 
 .cal-head,
@@ -576,7 +614,7 @@ button {
   margin-bottom: 6px;
 }
 
-/* Each day is a circle filled with water from the bottom, by how much was drunk. */
+/* Each day is a little glass bubble that fills with water from the bottom. */
 .cal-day {
   border: 0;
   padding: 0;
@@ -590,40 +628,74 @@ button {
   font-size: 14px;
   font-weight: 600;
   color: #10233a;
-  background: linear-gradient(to top, #9fd5ff var(--fill), #f2f8ff var(--fill));
+  background: linear-gradient(to top, rgba(110, 190, 255, 0.75) var(--fill), rgba(255, 255, 255, 0.7) var(--fill));
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 2px rgba(16, 35, 58, 0.06),
+    0 1px 3px rgba(16, 35, 58, 0.08);
+  transition: transform 0.15s ease, filter 0.15s ease;
 }
 
 button.cal-day:active {
-  transform: scale(0.92);
+  transform: scale(0.88);
+  filter: brightness(0.9);
 }
 
+/* Goal reached: blue tinted glass, like the Add water button. */
 .cal-day.met {
-  background: #1e7fe0;
+  background: linear-gradient(180deg, #5aaefb, #1e7fe0 60%, #1870cc);
   color: #ffffff;
+  text-shadow: 0 1px 1px rgba(10, 60, 120, 0.25);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.6),
+    inset 0 -2px 3px rgba(10, 60, 120, 0.25),
+    0 3px 8px rgba(30, 127, 224, 0.3);
 }
 
 .cal-day.today {
-  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #1e7fe0;
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 4px #1e7fe0,
+    inset 0 1px 1px rgba(255, 255, 255, 0.95);
 }
 
 .cal-day.future {
   background: transparent;
+  box-shadow: none;
   color: #c4d0dc;
 }
 
 .day-list {
   list-style: none;
-  margin: 26px 0 0;
-  padding: 0;
+  margin: 16px 0 0;
+  padding: 4px 16px;
 }
 
 .day-row {
+  position: relative;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 12px 0;
-  border-top: 1px solid #edf2f7;
+  padding: 12px 6px;
+  margin: 0 -6px;
+  border-radius: 16px;
+  transition: background 0.15s ease;
+}
+
+/* Straight divider between rows (a border would curve with the rounded corners). */
+.day-row + .day-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 6px;
+  right: 6px;
+  height: 1px;
+  background: rgba(16, 35, 58, 0.07);
+}
+
+.day-row:active {
+  background: rgba(16, 35, 58, 0.06);
 }
 
 .day-date {
@@ -662,29 +734,31 @@ button.cal-day:active {
   font-weight: 700;
 }
 
+/* Glossy glass tube that fills with water. */
 .day-bar {
-  height: 8px;
-  border-radius: 4px;
-  background: #eef5fc;
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(16, 35, 58, 0.06);
+  box-shadow: inset 0 1px 2px rgba(16, 35, 58, 0.1);
   overflow: hidden;
 }
 
 .day-bar i {
   display: block;
   height: 100%;
-  border-radius: 4px;
-  background: #4fb3ff;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #9ed6ff, #4fb3ff);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6);
 }
 
 .day-row.met .day-bar i {
-  background: #1e7fe0;
+  background: linear-gradient(180deg, #5aaefb, #1e7fe0);
 }
 
 .day-empty {
   padding: 18px 0;
   text-align: center;
   color: #7a8ca3;
-  border-top: 1px solid #edf2f7;
 }
 
 /* ---- tab bar (iOS "liquid glass" style) ---- */
