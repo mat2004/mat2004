@@ -1,6 +1,6 @@
 // Caches the app so it opens instantly and works offline.
 // Bump CACHE when you change any file so phones pick up the new version.
-var CACHE = "water-v12";
+var CACHE = "water-v13";
 var FILES = [
   "./",
   "index.html",
@@ -42,7 +42,7 @@ self.addEventListener("push", function (e) {
   e.waitUntil(self.registration.showNotification(data.title || "Water", {
     body: data.body || "Time for a glass of water 💧",
     icon: "icons/apple-touch-icon.png",
-    tag: "water-reminder"
+    tag: data.tag || "water-reminder"
   }));
 });
 
