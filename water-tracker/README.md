@@ -8,7 +8,7 @@ A very simple iPhone app for tracking how much water you drink each day.
 - The **target** button (bottom left) sets your daily goal (0.5–6 L).
 - The **undo** button (bottom right) removes the last drink if you made a mistake.
 - Starts from an empty bottle every new day.
-- The **calendar** button (top left) opens your history: day streak, 7-day average,
+- Two tabs at the bottom: **Intake** (the bottle) and **History**: day streak, 7-day average,
   a month calendar where each day fills with water, and a list of every day with how much you drank.
 - Everything is saved on the phone. No account, works offline.
 

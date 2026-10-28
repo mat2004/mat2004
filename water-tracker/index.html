@@ -14,12 +14,10 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="app">
+  <!-- Intake tab -->
+  <main id="intake" class="app">
     <header class="stats">
-      <button id="history-btn" class="btn-corner left" aria-label="History">
-        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      </button>
-      <button id="remind-btn" class="btn-corner right" aria-label="Reminders">
+      <button id="remind-btn" class="btn-corner" aria-label="Reminders">
         <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <div class="today">Today</div>
@@ -75,15 +73,9 @@
     </footer>
   </main>
 
-  <!-- History page -->
+  <!-- History tab -->
   <section id="history" class="page" hidden>
-    <header class="page-head">
-      <button id="history-back" class="btn-corner-static" aria-label="Back">
-        <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <h1>History</h1>
-      <span class="btn-corner-static"></span>
-    </header>
+    <h1 class="page-title">History</h1>
 
     <div class="summary">
       <div class="stat"><div class="stat-value"><span id="stat-streak">0</span> 🔥</div><div class="stat-label">day streak</div></div>
@@ -105,6 +97,17 @@
 
     <ul id="day-list" class="day-list"></ul>
   </section>
+
+  <nav class="tabbar" role="tablist">
+    <button class="tab active" data-tab="intake" role="tab" aria-selected="true">
+      <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 3.5c3.2 4 6 7.4 6 10.6a6 6 0 0 1-12 0c0-3.2 2.8-6.6 6-10.6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      <span>Intake</span>
+    </button>
+    <button class="tab" data-tab="history" role="tab" aria-selected="false">
+      <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <span>History</span>
+    </button>
+  </nav>
 
   <!-- Add water sheet -->
   <div id="add-sheet" class="sheet" hidden>

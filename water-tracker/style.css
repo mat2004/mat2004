@@ -14,6 +14,10 @@ textarea {
   user-select: text;
 }
 
+:root {
+  --tabbar: calc(env(safe-area-inset-bottom) + 64px);
+}
+
 html,
 body {
   margin: 0;
@@ -34,7 +38,7 @@ button {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: calc(env(safe-area-inset-top) + 24px) 20px calc(env(safe-area-inset-bottom) + 20px);
+  padding: calc(env(safe-area-inset-top) + 24px) 20px calc(var(--tabbar) + 16px);
   max-width: 480px;
   margin: 0 auto;
 }
@@ -45,9 +49,14 @@ button {
   position: relative;
 }
 
+.app[hidden] {
+  display: none;
+}
+
 .btn-corner {
   position: absolute;
   top: -8px;
+  right: -6px;
   width: 44px;
   height: 44px;
   border: 0;
@@ -58,13 +67,6 @@ button {
   place-items: center;
 }
 
-.btn-corner.left {
-  left: -6px;
-}
-
-.btn-corner.right {
-  right: -6px;
-}
 
 .today {
   font-size: 15px;
@@ -414,7 +416,7 @@ button {
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom) + 96px);
+  bottom: calc(var(--tabbar) + 96px);
   transform: translateX(-50%);
   background: #10233a;
   color: #ffffff;
@@ -429,24 +431,21 @@ button {
   display: none;
 }
 
-/* ---- history page ---- */
+/* ---- history tab ---- */
 .page {
   position: fixed;
-  inset: 0;
-  z-index: 5;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--tabbar);
   background: #ffffff;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: calc(env(safe-area-inset-top) + 12px) 20px calc(env(safe-area-inset-bottom) + 24px);
-  animation: slide-in 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  padding: calc(env(safe-area-inset-top) + 20px) 20px 24px;
 }
 
 .page[hidden] {
   display: none;
-}
-
-@keyframes slide-in {
-  from { transform: translateX(100%); }
 }
 
 .page > * {
@@ -455,32 +454,11 @@ button {
   margin-right: auto;
 }
 
-.page-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 18px;
-}
-
-.page-head h1 {
-  margin: 0;
+.page-title {
+  margin-top: 0;
+  margin-bottom: 20px;
   font-size: 22px;
-}
-
-.btn-corner-static {
-  width: 44px;
-  height: 44px;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: #1e7fe0;
-  display: grid;
-  place-items: center;
-  margin-left: -10px;
-}
-
-.page-head .btn-corner-static:last-child {
-  margin: 0 -10px 0 0;
+  text-align: center;
 }
 
 .summary {
@@ -655,4 +633,38 @@ button {
   text-align: center;
   color: #7a8ca3;
   border-top: 1px solid #edf2f7;
+}
+
+/* ---- tab bar ---- */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  height: var(--tabbar);
+  padding-bottom: env(safe-area-inset-bottom);
+  display: flex;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid #e6edf4;
+}
+
+.tab {
+  flex: 1;
+  max-width: 200px;
+  border: 0;
+  background: transparent;
+  color: #9aa9ba;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.tab.active {
+  color: #1e7fe0;
 }

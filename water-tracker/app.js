@@ -400,16 +400,27 @@
     $("day-list").innerHTML = listHtml || '<li class="day-empty">No water logged in ' + MONTHS[month] + ".</li>";
   }
 
-  $("history-btn").addEventListener("click", function () {
-    shownMonth = new Date();
-    shownMonth.setDate(1);
-    renderHistory();
-    $("history").hidden = false;
-    $("history").scrollTop = 0;
-  });
+  // ---------- tabs ----------
 
-  $("history-back").addEventListener("click", function () {
-    $("history").hidden = true;
+  function showTab(name) {
+    $("intake").hidden = name !== "intake";
+    $("history").hidden = name !== "history";
+    $("toast").hidden = true;
+    document.querySelectorAll("[data-tab]").forEach(function (btn) {
+      var active = btn.dataset.tab === name;
+      btn.classList.toggle("active", active);
+      btn.setAttribute("aria-selected", String(active));
+    });
+    if (name === "history") {
+      shownMonth = new Date();
+      shownMonth.setDate(1);
+      renderHistory();
+      $("history").scrollTop = 0;
+    }
+  }
+
+  document.querySelectorAll("[data-tab]").forEach(function (btn) {
+    btn.addEventListener("click", function () { showTab(btn.dataset.tab); });
   });
 
   $("month-prev").addEventListener("click", function () {
