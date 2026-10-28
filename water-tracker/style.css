@@ -739,17 +739,43 @@ button.cal-day:active {
   font-variant-numeric: tabular-nums;
 }
 
-.day-chart .bar {
+.day-chart .line {
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.day-chart .area {
+  fill: rgba(30, 127, 224, 0.1);
+}
+
+.day-chart .goal-line {
+  stroke: #7a8ca3;
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+}
+
+.day-chart .goal-label {
+  font-size: 10px;
+  font-weight: 600;
+  fill: #5d7088;
+}
+
+.day-chart .dot {
   fill: var(--blue);
-  transition: opacity 0.15s ease;
+  stroke: #ffffff;
+  stroke-width: 2;
 }
 
-.day-chart .bar.dim {
-  opacity: 0.3;
+.day-chart .cross {
+  stroke: #9aa9ba;
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
 }
 
-.day-chart .hit {
-  fill: transparent;
+.day-chart {
   cursor: pointer;
 }
 

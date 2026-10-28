@@ -420,15 +420,18 @@
     return (h < 10 ? "0" : "") + h + ":00";
   }
 
-  // ---------- selected day: stats + chart of water per hour ----------
+  // ---------- selected day: stats + line chart of water through the day ----------
 
   var CHART_W = 340;
-  var CHART_H = 150;
-  var PLOT_LEFT = 44; // room for the y labels
-  var PLOT_TOP = 8;
+  var CHART_H = 170;
+  var PLOT_LEFT = 34; // room for the y labels
+  var PLOT_RIGHT = 6;
+  var PLOT_TOP = 12;
   var PLOT_BOTTOM = 22; // room for the x labels
-  var dayHours = []; // ml per hour for the selected day
-  var dayHourCounts = [];
+  var MINUTES_IN_DAY = 24 * 60;
+  var chartDrinks = []; // the selected day's drinks that have a time: { min, ml, total }
+  var chartGoal = 0;
+  var chartEndMin = MINUTES_IN_DAY;
 
   function renderDayStats() {
     var key = selectedDay;
@@ -449,93 +452,113 @@
     $("sel-count-label").textContent = drinks.length === 1 ? "drink" : "drinks";
     $("sel-avg").textContent = drinks.length ? Math.round(total / drinks.length) + " ml" : "–";
 
-    dayHours = [];
-    dayHourCounts = [];
-    for (var h = 0; h < 24; h++) {
-      dayHours.push(0);
-      dayHourCounts.push(0);
-    }
+    // Timed drinks in order, each with the running total after it.
+    var dayStart = keyToDate(key).getTime();
     var untimedMl = 0;
     var untimedCount = 0;
+    chartDrinks = [];
     drinks.forEach(function (drink) {
       var t = timeOf(drink);
       if (t) {
-        var hour = new Date(t).getHours();
-        dayHours[hour] += mlOf(drink);
-        dayHourCounts[hour]++;
+        chartDrinks.push({ min: Math.min(MINUTES_IN_DAY, Math.max(0, (t - dayStart) / 60000)), ml: mlOf(drink), t: t });
       } else {
         untimedMl += mlOf(drink);
         untimedCount++;
       }
     });
-    var timedCount = drinks.length - untimedCount;
+    chartDrinks.sort(function (a, b) { return a.min - b.min; });
+    var running = 0;
+    chartDrinks.forEach(function (d) {
+      running += d.ml;
+      d.total = running;
+    });
+    chartGoal = dayGoalMl(key);
+    // Today the line stops at the current time; other days run to midnight.
+    chartEndMin = key === today ? Math.max((Date.now() - dayStart) / 60000, chartDrinks.length ? chartDrinks[chartDrinks.length - 1].min : 0) : MINUTES_IN_DAY;
 
     var message = "";
     if (future) message = "This day hasn't come yet.";
     else if (!drinks.length) message = "No water logged this day.";
-    else if (!timedCount) message = "This day has no drink times saved, so there's no chart for it.";
+    else if (!chartDrinks.length) message = "This day has no drink times saved, so there's no chart for it.";
     $("sel-chart-wrap").hidden = !!message;
     $("sel-empty").textContent = message;
     $("sel-empty").hidden = !message;
-    $("sel-note").hidden = !(timedCount && untimedCount);
+    $("sel-note").hidden = !(chartDrinks.length && untimedCount);
     $("sel-note").textContent = untimedCount
       ? "+ " + untimedMl + " ml from " + untimedCount + (untimedCount === 1 ? " drink" : " drinks") + " without a time, not shown in the chart."
       : "";
     if (!message) renderChart(null);
   }
 
-  function renderChart(activeHour) {
-    var plotW = CHART_W - PLOT_LEFT;
+  function renderChart(active) {
+    var plotW = CHART_W - PLOT_LEFT - PLOT_RIGHT;
     var plotH = CHART_H - PLOT_TOP - PLOT_BOTTOM;
     var baseY = PLOT_TOP + plotH;
-    var peak = Math.max.apply(null, dayHours);
-    var step = peak > 1000 ? 500 : 250;
-    var max = Math.max(step * 2, Math.ceil(peak / step) * step);
-    var col = plotW / 24;
-    var gap = 2;
+    var last = chartDrinks[chartDrinks.length - 1];
+    // The y axis always reaches the goal, in half-litre steps.
+    var max = Math.ceil(Math.max(chartGoal, last.total) / 500) * 500;
+    var xOf = function (min) { return PLOT_LEFT + (min / MINUTES_IN_DAY) * plotW; };
+    var yOf = function (ml) { return baseY - (ml / max) * plotH; };
+    var f = function (n) { return Math.round(n * 10) / 10; };
     var svg = "";
 
-    // Recessive grid: baseline, middle and top, with y labels.
-    [0, max / 2, max].forEach(function (v) {
-      var gy = baseY - (v / max) * plotH;
-      svg += '<line class="grid' + (v === 0 ? " base" : "") + '" x1="' + PLOT_LEFT + '" x2="' + CHART_W + '" y1="' + gy + '" y2="' + gy + '"/>';
-      svg += '<text class="axis" x="' + (PLOT_LEFT - 6) + '" y="' + (gy + 3.5) + '" text-anchor="end">' + v + " ml</text>";
-    });
+    // Recessive grid with litre labels, and hour labels along the bottom.
+    var stepMl = max > 3000 ? 1000 : 500;
+    for (var v = 0; v <= max; v += stepMl) {
+      svg += '<line class="grid' + (v === 0 ? " base" : "") + '" x1="' + PLOT_LEFT + '" x2="' + (CHART_W - PLOT_RIGHT) + '" y1="' + f(yOf(v)) + '" y2="' + f(yOf(v)) + '"/>';
+      svg += '<text class="axis" x="' + (PLOT_LEFT - 6) + '" y="' + f(yOf(v) + 3.5) + '" text-anchor="end">' + v / 1000 + " L</text>";
+    }
     [0, 6, 12, 18, 24].forEach(function (h) {
       var anchor = h === 0 ? "start" : h === 24 ? "end" : "middle";
-      svg += '<text class="axis" x="' + (PLOT_LEFT + h * col) + '" y="' + (CHART_H - 6) + '" text-anchor="' + anchor + '">' + hourLabel(h) + "</text>";
+      svg += '<text class="axis" x="' + f(xOf(h * 60)) + '" y="' + (CHART_H - 6) + '" text-anchor="' + anchor + '">' + hourLabel(h) + "</text>";
     });
 
-    // One bar per hour, rounded at the top and sitting on the baseline.
-    for (var h = 0; h < 24; h++) {
-      var x = PLOT_LEFT + h * col + gap / 2;
-      var w = col - gap;
-      if (dayHours[h] > 0) {
-        var bh = Math.max(3, (dayHours[h] / max) * plotH);
-        var r = Math.min(4, w / 2, bh);
-        var top = baseY - bh;
-        var cls = "bar" + (activeHour === null ? "" : h === activeHour ? " active" : " dim");
-        svg += '<path class="' + cls + '" d="M' + x + " " + baseY + " V" + (top + r) + " Q" + x + " " + top + " " + (x + r) + " " + top +
-          " H" + (x + w - r) + " Q" + (x + w) + " " + top + " " + (x + w) + " " + (top + r) + " V" + baseY + ' Z"/>';
-      }
-      // Tap target: the whole column, bigger than the bar.
-      svg += '<rect class="hit" data-hour="' + h + '" x="' + (PLOT_LEFT + h * col) + '" y="' + PLOT_TOP + '" width="' + col + '" height="' + plotH + '"/>';
+    // Dashed goal line, labelled in text colour.
+    var goalY = f(yOf(chartGoal));
+    svg += '<line class="goal-line" x1="' + PLOT_LEFT + '" x2="' + (CHART_W - PLOT_RIGHT) + '" y1="' + goalY + '" y2="' + goalY + '"/>';
+    svg += '<text class="goal-label" x="' + (PLOT_LEFT + 4) + '" y="' + (goalY - 5) + '">Goal ' + litres(chartGoal) + " L</text>";
+
+    // The line: flat between drinks, stepping up at each one.
+    var line = "M" + f(xOf(0)) + " " + f(baseY);
+    chartDrinks.forEach(function (d) {
+      line += " H" + f(xOf(d.min)) + " V" + f(yOf(d.total));
+    });
+    line += " H" + f(xOf(chartEndMin));
+    svg += '<path class="area" d="' + line + " V" + f(baseY) + ' Z"/>';
+    svg += '<path class="line" d="' + line + '"/>';
+
+    // Crosshair for the tapped drink.
+    if (active !== null) {
+      var ax = f(xOf(chartDrinks[active].min));
+      svg += '<line class="cross" x1="' + ax + '" x2="' + ax + '" y1="' + PLOT_TOP + '" y2="' + baseY + '"/>';
     }
+
+    // A dot for each drink, with a white ring so close dots stay apart.
+    chartDrinks.forEach(function (d, i) {
+      svg += '<circle class="dot' + (i === active ? " active" : "") + '" cx="' + f(xOf(d.min)) + '" cy="' + f(yOf(d.total)) + '" r="' + (i === active ? 6 : 4) + '"/>';
+    });
     $("sel-chart").innerHTML = svg;
 
     var tip = $("sel-tip");
-    if (activeHour !== null && dayHours[activeHour] > 0) {
-      var n = dayHourCounts[activeHour];
-      tip.innerHTML = "<b>" + hourLabel(activeHour) + "–" + hourLabel(activeHour + 1) + "</b> · " + dayHours[activeHour] + " ml · " + n + (n === 1 ? " drink" : " drinks");
+    if (active !== null) {
+      var d = chartDrinks[active];
+      tip.innerHTML = "<b>" + clock(d.t) + "</b> · +" + d.ml + " ml · " + litres(d.total) + " L so far";
     } else {
-      tip.textContent = "Water per hour. Tap a bar for details.";
+      tip.textContent = "Water through the day. Tap the chart to see each drink.";
     }
   }
 
+  // Tapping anywhere on the chart picks the nearest drink.
   $("sel-chart").addEventListener("click", function (e) {
-    var hit = e.target.closest("[data-hour]");
-    var hour = hit ? Number(hit.dataset.hour) : null;
-    renderChart(hour !== null && dayHours[hour] > 0 ? hour : null);
+    if (!chartDrinks.length) return;
+    var box = $("sel-chart").getBoundingClientRect();
+    var x = ((e.clientX - box.left) / box.width) * CHART_W;
+    var min = ((x - PLOT_LEFT) / (CHART_W - PLOT_LEFT - PLOT_RIGHT)) * MINUTES_IN_DAY;
+    var best = 0;
+    chartDrinks.forEach(function (d, i) {
+      if (Math.abs(d.min - min) < Math.abs(chartDrinks[best].min - min)) best = i;
+    });
+    renderChart(best);
   });
 
   $("cal").addEventListener("click", function (e) {
