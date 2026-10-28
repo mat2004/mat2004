@@ -1,0 +1,55 @@
+name: Water reminders
+
+# Checks every 10 minutes whether a drink reminder is due and sends it to the phone.
+# The random 1.5–2 hour schedule lives in reminders/send.js; its state is kept on the
+# "reminder-state" branch so it survives between runs.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+    inputs:
+      test:
+        description: Send a reminder right now
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency: water-reminders
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Load schedule state
+        run: |
+          if git fetch -q origin reminder-state; then
+            git show FETCH_HEAD:state.json > "$RUNNER_TEMP/state.json"
+          else
+            echo '{}' > "$RUNNER_TEMP/state.json"
+          fi
+          cp "$RUNNER_TEMP/state.json" "$RUNNER_TEMP/state.before.json"
+
+      - name: Install
+        run: npm install --prefix reminders --no-audit --no-fund
+
+      - name: Send reminder if due
+        env:
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          REMINDER_CODE: ${{ secrets.REMINDER_CODE }}
+          FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.test }}
+        run: node reminders/send.js "$RUNNER_TEMP/state.json"
+
+      - name: Save schedule state
+        if: always()
+        run: |
+          cmp -s "$RUNNER_TEMP/state.json" "$RUNNER_TEMP/state.before.json" && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          blob=$(git hash-object -w "$RUNNER_TEMP/state.json")
+          tree=$(printf '100644 blob %s\tstate.json\n' "$blob" | git mktree)
+          commit=$(git commit-tree "$tree" -m "Update water reminder schedule")
+          git push -q --force origin "$commit:refs/heads/reminder-state"

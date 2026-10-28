@@ -1,0 +1,8 @@
+{
+  "name": "water-reminders",
+  "private": true,
+  "description": "Sends the Water app's drink reminders. Run by .github/workflows/water-reminders.yml.",
+  "dependencies": {
+    "web-push": "3.6.7"
+  }
+}

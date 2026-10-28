@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Water">
+  <title>Water</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="stats">
+      <button id="remind-btn" class="btn-bell" aria-label="Reminders">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="today">Today</div>
+      <div class="amount"><span id="drank">0</span><span class="unit"> L</span></div>
+      <div class="goal-line">of <span id="goal">2.5</span> L &middot; <span id="status">2.5 L to go</span></div>
+    </header>
+
+    <section class="bottle-wrap">
+      <svg id="bottle" viewBox="0 0 200 420" role="img" aria-label="Water bottle">
+        <defs>
+          <clipPath id="bottle-clip">
+            <path id="bottle-shape" d="M80 52 H120 V74 C120 94 160 104 160 140 V382 Q160 408 134 408 H66 Q40 408 40 382 V140 C40 104 80 94 80 74 Z"/>
+          </clipPath>
+          <linearGradient id="water-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#4fb3ff"/>
+            <stop offset="1" stop-color="#1e7fe0"/>
+          </linearGradient>
+        </defs>
+
+        <!-- bottle background -->
+        <use href="#bottle-shape" fill="#f2f8ff"/>
+
+        <!-- water -->
+        <g clip-path="url(#bottle-clip)">
+          <g id="water" class="water">
+            <g class="wave wave-back">
+              <path d="M0 0 Q25 -9 50 0 T100 0 T150 0 T200 0 T250 0 T300 0 T350 0 T400 0 V430 H0 Z" fill="#8fd0ff"/>
+            </g>
+            <g class="wave wave-front">
+              <path d="M0 4 Q25 -5 50 4 T100 4 T150 4 T200 4 T250 4 T300 4 T350 4 T400 4 V430 H0 Z" fill="url(#water-grad)"/>
+            </g>
+          </g>
+          <g id="ticks"></g>
+          <!-- shine -->
+          <rect x="132" y="150" width="9" height="210" rx="4.5" fill="#ffffff" opacity="0.35"/>
+        </g>
+
+        <!-- bottle outline + cap -->
+        <use href="#bottle-shape" fill="none" stroke="#cfe3f5" stroke-width="3"/>
+        <rect x="72" y="16" width="56" height="38" rx="7" fill="#2b8ce6"/>
+        <rect x="72" y="46" width="56" height="8" rx="3" fill="#1f73c4"/>
+      </svg>
+    </section>
+
+    <footer class="actions">
+      <button id="goal-btn" class="btn-round" aria-label="Set daily goal">
+        <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/></svg>
+      </button>
+      <button id="add-btn" class="btn-primary">+ Add water</button>
+      <button id="undo-btn" class="btn-round" aria-label="Undo last drink" disabled>
+        <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </footer>
+  </main>
+
+  <!-- Add water sheet -->
+  <div id="add-sheet" class="sheet" hidden>
+    <div class="sheet-backdrop" data-close></div>
+    <div class="sheet-panel" role="dialog" aria-labelledby="add-title">
+      <div class="grabber"></div>
+      <h2 id="add-title">How much did you drink?</h2>
+      <div class="quick">
+        <button data-ml="100">100 ml</button>
+        <button data-ml="200">200 ml</button>
+        <button data-ml="250">250 ml</button>
+        <button data-ml="330">330 ml</button>
+        <button data-ml="500">500 ml</button>
+        <button data-ml="750">750 ml</button>
+      </div>
+      <form id="custom-form" class="custom">
+        <input id="custom-ml" type="number" inputmode="numeric" min="1" max="5000" placeholder="Other amount">
+        <span class="suffix">ml</span>
+        <button type="submit" class="btn-primary small">Add</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Goal sheet -->
+  <div id="goal-sheet" class="sheet" hidden>
+    <div class="sheet-backdrop" data-close></div>
+    <div class="sheet-panel" role="dialog" aria-labelledby="goal-title">
+      <div class="grabber"></div>
+      <h2 id="goal-title">Daily goal</h2>
+      <div class="stepper">
+        <button id="goal-minus" aria-label="Decrease goal">&minus;</button>
+        <div class="stepper-value"><span id="goal-value">2.5</span> L</div>
+        <button id="goal-plus" aria-label="Increase goal">+</button>
+      </div>
+      <div class="presets">
+        <button data-goal="1.5">1.5 L</button>
+        <button data-goal="2">2 L</button>
+        <button data-goal="2.5">2.5 L</button>
+        <button data-goal="3">3 L</button>
+      </div>
+      <button id="goal-save" class="btn-primary">Save</button>
+    </div>
+  </div>
+
+  <!-- Reminders sheet -->
+  <div id="remind-sheet" class="sheet" hidden>
+    <div class="sheet-backdrop" data-close></div>
+    <div class="sheet-panel" role="dialog" aria-labelledby="remind-title">
+      <div class="grabber"></div>
+      <h2 id="remind-title">Reminders</h2>
+      <p class="hint">A reminder to drink every 1.5–2 hours, only between these times:</p>
+      <div class="hours">
+        <label>From<input id="remind-from" type="time" value="08:00"></label>
+        <label>Until<input id="remind-to" type="time" value="22:00"></label>
+      </div>
+      <button id="remind-on" class="btn-primary wide">Turn on reminders</button>
+      <p id="remind-error" class="error" hidden></p>
+      <div id="remind-code-box" class="code-box" hidden>
+        <p class="hint">Last step: copy this code and save it on GitHub as the secret <b>REMINDER_CODE</b>. If you change the times later, do this again.</p>
+        <textarea id="remind-code" rows="3" readonly></textarea>
+        <button id="remind-copy" class="btn-primary wide">Copy code</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
