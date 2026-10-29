@@ -135,10 +135,15 @@ async function main() {
       return;
     }
     if (!state.nextAt) {
-      state.nextAt = now + randomMinutes(0, FIRST_DELAY_MAX);
-      save();
-      console.log(`First reminder today at ${fmt(state.nextAt, code.tz)}.`);
-      return;
+      // First reminder of the day: up to FIRST_DELAY_MAX minutes after the "from" time.
+      // GitHub sometimes runs this hours late; if that moment has already passed, send now.
+      const sinceStart = (mins - toMinutes(code.from) + 24 * 60) % (24 * 60);
+      state.nextAt = now + Math.max(0, randomMinutes(0, FIRST_DELAY_MAX) - sinceStart * MINUTE);
+      if (state.nextAt > now) {
+        save();
+        console.log(`First reminder today at ${fmt(state.nextAt, code.tz)}.`);
+        return;
+      }
     }
     if (now < state.nextAt) {
       console.log(`Next reminder at ${fmt(state.nextAt, code.tz)}.`);
